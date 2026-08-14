@@ -1,0 +1,25 @@
+alter table kelengkapan_alat add column if not exists nomor text;
+
+update kelengkapan_alat set nomor = 'SS1/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Supersting R8/IP console ( 02.13.02.02.004.7 )';
+update kelengkapan_alat set nomor = 'SS2/04' where nama_alat = 'Induced Polarization' and nama_bagian = '2 meter Jumper cables';
+update kelengkapan_alat set nomor = 'SS3/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Battery cable for 12V';
+update kelengkapan_alat set nomor = 'SS4/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Booster Battery cable for 24V';
+update kelengkapan_alat set nomor = 'SS5/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'In-house power supply + cable';
+update kelengkapan_alat set nomor = 'SS6/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Resistance Test box';
+update kelengkapan_alat set nomor = 'SS7/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'PC serial COM cable for communication';
+update kelengkapan_alat set nomor = 'SS8/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Ext. Tx com cable for loading firmware';
+update kelengkapan_alat set nomor = 'SS9/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Fuse 12V / 60Ah';
+update kelengkapan_alat set nomor = 'SS10/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Test Cable';
+update kelengkapan_alat set nomor = 'SS11/04' where nama_alat = 'Induced Polarization' and nama_bagian = '5 meter electrical ext. cable';
+update kelengkapan_alat set nomor = 'SS12/04' where nama_alat = 'Induced Polarization' and nama_bagian = '1/2 meter electrical ext. cable';
+update kelengkapan_alat set nomor = 'SS13/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Switch box R8/IP 56 passive cable system';
+update kelengkapan_alat set nomor = 'SS14/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Passive electrical resistivity imaging cable (@14 conn. x 6,25 m)';
+update kelengkapan_alat set nomor = 'SS15/04' where nama_alat = 'Induced Polarization' and nama_bagian = 'Electrode stake w//spring length 40 cm/18"-3/8"';
+update kelengkapan_alat set nomor = 'SS16/05' where nama_alat = 'Induced Polarization' and nama_bagian = 'Carrying bag for console SS R8/IP';
+update kelengkapan_alat set nomor = 'SS17/05' where nama_alat = 'Induced Polarization' and nama_bagian = 'Carrying bag for switch box';
+update kelengkapan_alat set nomor = 'SS18/05' where nama_alat = 'Induced Polarization' and nama_bagian = 'Carrying bag for electrode 40 cm';
+update kelengkapan_alat set nomor = 'SS19/05' where nama_alat = 'Induced Polarization' and nama_bagian = 'Current cable roll (@650 m)';
+update kelengkapan_alat set nomor = 'SS20/05' where nama_alat = 'Induced Polarization' and nama_bagian = 'Potential cable roll (@ 100 m)';
+update kelengkapan_alat set nomor = 'SS21/05' where nama_alat = 'Induced Polarization' and nama_bagian = 'Big electrode stainless steel';
+update kelengkapan_alat set nomor = 'SS22/05' where nama_alat = 'Induced Polarization' and nama_bagian = 'Multitester';
+update kelengkapan_alat set nomor = 'SS23/06' where nama_alat = 'Induced Polarization' and nama_bagian = 'Safety box for console';
