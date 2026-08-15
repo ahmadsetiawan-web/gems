@@ -131,7 +131,7 @@ export default async function DashboardPage() {
       eq: [["status", "diajukan"]],
     }));
     cards.push({
-      label: "Pengajuan menunggu Persetujuan kamu",
+      label: "Pengajuan menunggu persetujuan kamu",
       count,
       href: "/pimpinan/peminjaman",
     });
@@ -153,7 +153,7 @@ export default async function DashboardPage() {
       href: "/pimpinan2/peminjaman",
     });
     cards.push({
-      label: "Hasil pemeriksaan menunggu ACC kamu",
+      label: "Hasil pemeriksaan menunggu persetujuan kamu",
       count: accCount,
       href: "/pimpinan2/peminjaman",
     });

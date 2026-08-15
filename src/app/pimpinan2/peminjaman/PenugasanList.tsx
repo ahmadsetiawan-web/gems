@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import ChecklistDisplay from "@/components/ChecklistDisplay";
+import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type Pengajuan = {
   id: string;
@@ -29,10 +30,12 @@ export default function PenugasanList({
   data,
   teknisiList,
   checklistByPeminjaman,
+  jumlahUnitMap,
 }: {
   data: Pengajuan[];
   teknisiList: Teknisi[];
   checklistByPeminjaman: Record<string, ChecklistRow[]>;
+  jumlahUnitMap: Record<string, number>;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -79,7 +82,7 @@ export default function PenugasanList({
         >
           <div>
             <p className="font-medium text-slate-900">
-              {p.alat?.nama_alat ?? "-"}{" "}
+              {labelJumlahUnit(p.alat?.nama_alat ?? "-", jumlahUnitMap[p.id])}{" "}
               {p.alat?.tipe_alat && `(${p.alat.tipe_alat})`}
             </p>
             <p className="text-sm text-slate-500">
@@ -100,7 +103,7 @@ export default function PenugasanList({
               }))}
             />
             <Link
-              href={`/pengembalian/surat-persetujuan/${p.id}`}
+              href={`/surat-persetujuan/${p.id}`}
               target="_blank"
               className="mt-1 inline-block text-sm text-blue-600 hover:underline"
             >

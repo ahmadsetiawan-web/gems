@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/Navbar";
 import KopSurat from "@/components/KopSurat";
@@ -25,7 +25,7 @@ type PengembalianDetail = {
 };
 
 type ChecklistItem = {
-  jumlah_dibawa: number;
+  jumlah_dikembalikan: number;
   kelengkapan_alat: {
     nomor: string | null;
     nama_bagian: string;
@@ -49,12 +49,19 @@ function formatWaktu(iso: string | null) {
 }
 
 export default async function SuratPengembalianPage(
-  props: PageProps<"/pengembalian/surat-pengembalian/[id]">
+  props: PageProps<"/surat-pengembalian/[id]">
 ) {
   const { id } = await props.params;
 
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // RLS peminjaman: pemilik lihat miliknya sendiri, staff lihat semua --
+  // jadi kalau baris ini null berarti bukan pemilik dan bukan staff.
   const { data: peminjaman } = (await supabase
     .from("peminjaman")
     .select(
@@ -83,9 +90,22 @@ export default async function SuratPengembalianPage(
   const jabatanPimpinan2 = pegawaiPimpinan2?.jabatan_struktural || null;
 
   const { data: checklist } = (await supabase
-    .from("peminjaman_kelengkapan")
-    .select("jumlah_dibawa, kelengkapan_alat(nomor, nama_bagian, no_inventaris)")
+    .from("peminjaman_kelengkapan_kembali")
+    .select(
+      "jumlah_dikembalikan, kelengkapan_alat(nomor, nama_bagian, no_inventaris)"
+    )
     .eq("peminjaman_id", id)) as { data: ChecklistItem[] | null };
+
+  type UnitTambahan = {
+    alat: { id_alat: string; no_inventaris: string | null } | null;
+  };
+
+  const { data: unitTambahanRaw } = (await supabase
+    .from("peminjaman_unit_tambahan")
+    .select("alat(id_alat, no_inventaris)")
+    .eq("peminjaman_id", id)) as { data: UnitTambahan[] | null };
+
+  const unitTambahan = unitTambahanRaw ?? [];
 
   return (
     <div className="min-h-screen bg-slate-50 print:bg-white">
@@ -106,7 +126,7 @@ export default async function SuratPengembalianPage(
           <div className="border border-slate-900 bg-white text-xs">
             <KopSurat />
             <div className="border-b border-slate-900 p-1.5 text-center font-bold">
-              DATA SURAT PENGEMBALIAN PERALATAN
+              SURAT PENGEMBALIAN PERALATAN
             </div>
             {peminjaman.nomor_surat && (
               <div className="border-b border-slate-900 p-1.5 text-center text-slate-500">
@@ -158,7 +178,7 @@ export default async function SuratPengembalianPage(
                   <th className="border-r border-slate-900 px-2 py-0.5 text-left">
                     No. Alat / Inventaris
                   </th>
-                  <th className="px-2 py-0.5 text-left">Unit Dipinjam</th>
+                  <th className="px-2 py-0.5 text-left">Unit Dikembalikan</th>
                 </tr>
               </thead>
               <tbody>
@@ -167,12 +187,38 @@ export default async function SuratPengembalianPage(
                   <td className="border-r border-slate-900 px-2 py-0.5">A</td>
                   <td className="border-r border-slate-900 px-2 py-0.5">
                     Equipments: {peminjaman.alat?.nama_alat ?? "-"}
+                    {unitTambahan.length > 0 &&
+                      ` — ${unitTambahan.length + 1} unit`}
                   </td>
                   <td className="border-r border-slate-900 px-2 py-0.5">
-                    {peminjaman.alat?.no_inventaris ?? "-"}
+                    {unitTambahan.length === 0
+                      ? (peminjaman.alat?.no_inventaris ?? "-")
+                      : ""}
                   </td>
                   <td className="px-2 py-0.5"></td>
                 </tr>
+                {unitTambahan.length > 0 && (
+                  <>
+                    {[
+                      { id_alat: peminjaman.alat?.id_alat, no_inventaris: peminjaman.alat?.no_inventaris },
+                      ...unitTambahan.map((u) => u.alat),
+                    ].map((u, i) => (
+                      <tr key={u?.id_alat ?? i} className="border-b border-slate-900">
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {i + 1}
+                        </td>
+                        <td className="border-r border-slate-900 px-2 py-0.5"></td>
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {u?.id_alat ?? "-"}
+                        </td>
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {u?.no_inventaris ?? "-"}
+                        </td>
+                        <td className="px-2 py-0.5">1</td>
+                      </tr>
+                    ))}
+                  </>
+                )}
                 {(checklist ?? []).map((c, i) => (
                   <tr key={i} className="border-b border-slate-900">
                     <td className="border-r border-slate-900 px-2 py-0.5">
@@ -187,7 +233,7 @@ export default async function SuratPengembalianPage(
                     <td className="border-r border-slate-900 px-2 py-0.5">
                       {c.kelengkapan_alat?.no_inventaris ?? "-"}
                     </td>
-                    <td className="px-2 py-0.5">{c.jumlah_dibawa}</td>
+                    <td className="px-2 py-0.5">{c.jumlah_dikembalikan}</td>
                   </tr>
                 ))}
               </tbody>

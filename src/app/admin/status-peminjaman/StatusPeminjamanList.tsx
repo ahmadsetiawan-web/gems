@@ -79,14 +79,14 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
                     {r.jenis === "Survei" && sudahDisetujui ? (
                       <div className="flex flex-col items-start gap-1">
                         <Link
-                          href={`/pengembalian/surat-persetujuan/${r.id}`}
+                          href={`/surat-persetujuan/${r.id}`}
                           target="_blank"
                           className="text-blue-600 hover:underline"
                         >
                           Surat Persetujuan
                         </Link>
                         <Link
-                          href={`/pengembalian/surat/${r.id}`}
+                          href={`/surat/${r.id}`}
                           target="_blank"
                           className="text-blue-600 hover:underline"
                         >
@@ -94,7 +94,7 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
                         </Link>
                         {r.status === "dikembalikan" && (
                           <Link
-                            href={`/pengembalian/surat-pengembalian/${r.id}`}
+                            href={`/surat-pengembalian/${r.id}`}
                             target="_blank"
                             className="text-blue-600 hover:underline"
                           >

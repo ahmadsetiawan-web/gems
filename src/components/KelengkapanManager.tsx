@@ -35,6 +35,15 @@ export default function KelengkapanManager({
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editNomor, setEditNomor] = useState("");
+  const [editNamaBagian, setEditNamaBagian] = useState("");
+  const [editNoInventaris, setEditNoInventaris] = useState("");
+  const [editKategori, setEditKategori] = useState("");
+  const [editJumlahStandar, setEditJumlahStandar] = useState("1");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState("");
+
   async function handleAdd(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -75,6 +84,48 @@ export default function KelengkapanManager({
     router.refresh();
   }
 
+  function startEdit(k: Kelengkapan) {
+    setEditingId(k.id);
+    setEditNomor(k.nomor ?? "");
+    setEditNamaBagian(k.nama_bagian);
+    setEditNoInventaris(k.no_inventaris ?? "");
+    setEditKategori(k.kategori ?? "");
+    setEditJumlahStandar(String(k.jumlah_standar));
+    setEditError("");
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditError("");
+  }
+
+  async function handleUpdate(id: string, e: FormEvent) {
+    e.preventDefault();
+    setEditError("");
+    setEditSubmitting(true);
+
+    const { error: updateError } = await supabase
+      .from("kelengkapan_alat")
+      .update({
+        nomor: editNomor.trim() || null,
+        nama_bagian: editNamaBagian.trim(),
+        no_inventaris: editNoInventaris.trim() || null,
+        kategori: editKategori.trim() || null,
+        jumlah_standar: parseInt(editJumlahStandar, 10) || 1,
+      })
+      .eq("id", id);
+
+    setEditSubmitting(false);
+
+    if (updateError) {
+      setEditError(updateError.message);
+      return;
+    }
+
+    setEditingId(null);
+    router.refresh();
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-slate-900">
@@ -91,38 +142,101 @@ export default function KelengkapanManager({
             Belum ada kelengkapan terdaftar.
           </p>
         )}
-        {data.map((k) => (
-          <div
-            key={k.id}
-            className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm"
-          >
-            <div>
-              <p className="font-medium text-slate-800">
-                {k.nomor && (
-                  <span className="text-slate-400">{k.nomor} &middot; </span>
-                )}
-                {k.nama_bagian}{" "}
-                {k.kategori && (
-                  <span className="text-xs font-normal text-slate-400">
-                    ({k.kategori})
-                  </span>
-                )}
-              </p>
-              <p className="text-slate-500">
-                Jumlah: {k.jumlah_standar}
-                {k.no_inventaris && ` · No. Inv: ${k.no_inventaris}`}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleDelete(k.id)}
-              disabled={deletingId === k.id}
-              className="text-red-600 hover:underline disabled:opacity-50"
+        {data.map((k) =>
+          editingId === k.id ? (
+            <form
+              key={k.id}
+              onSubmit={(e) => handleUpdate(k.id, e)}
+              className="space-y-3 rounded-lg border border-[#d1cb23] bg-[#F6EE29]/10 p-3 text-sm"
             >
-              Hapus
-            </button>
-          </div>
-        ))}
+              <Input
+                label="Nomor"
+                value={editNomor}
+                onChange={(e) => setEditNomor(e.target.value)}
+                placeholder="Misal: SS1/04"
+              />
+              <Input
+                label="Nama Bagian"
+                value={editNamaBagian}
+                onChange={(e) => setEditNamaBagian(e.target.value)}
+                required
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="No. Inventaris"
+                  value={editNoInventaris}
+                  onChange={(e) => setEditNoInventaris(e.target.value)}
+                />
+                <Input
+                  label="Jumlah Standar"
+                  type="number"
+                  min={1}
+                  value={editJumlahStandar}
+                  onChange={(e) => setEditJumlahStandar(e.target.value)}
+                />
+              </div>
+              <Input
+                label="Kategori (opsional)"
+                value={editKategori}
+                onChange={(e) => setEditKategori(e.target.value)}
+              />
+              {editError && <Alert variant="error">{editError}</Alert>}
+              <div className="flex gap-2">
+                <Button type="submit" disabled={editSubmitting}>
+                  {editSubmitting ? "Menyimpan..." : "Simpan"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={cancelEdit}
+                  disabled={editSubmitting}
+                >
+                  Batal
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <div
+              key={k.id}
+              className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            >
+              <div>
+                <p className="font-medium text-slate-800">
+                  {k.nomor && (
+                    <span className="text-slate-400">{k.nomor} &middot; </span>
+                  )}
+                  {k.nama_bagian}{" "}
+                  {k.kategori && (
+                    <span className="text-xs font-normal text-slate-400">
+                      ({k.kategori})
+                    </span>
+                  )}
+                </p>
+                <p className="text-slate-500">
+                  Jumlah: {k.jumlah_standar}
+                  {k.no_inventaris && ` · No. Inv: ${k.no_inventaris}`}
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-3">
+                <button
+                  type="button"
+                  onClick={() => startEdit(k)}
+                  className="text-[#8a8300] hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(k.id)}
+                  disabled={deletingId === k.id}
+                  className="text-red-600 hover:underline disabled:opacity-50"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          )
+        )}
       </div>
 
       <form

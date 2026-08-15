@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/Navbar";
-import PemeriksaanPengembalianList, {
-  type TugasPengembalian,
-} from "./PemeriksaanPengembalianList";
+import { getJumlahUnitTambahan } from "@/lib/peminjamanKolektif";
 import KembalikanList, { type Pinjaman } from "./KembalikanList";
 import KonfirmasiKembaliList, {
   type SiapDikembalikan,
@@ -11,19 +9,6 @@ import RiwayatList, { type RiwayatRow } from "./RiwayatList";
 
 export default async function AdminPeminjamanPage() {
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: menungguPengembalian } = (await supabase
-    .from("peminjaman")
-    .select(
-      "id, tanggal_pinjam, tanggal_rencana_kembali, catatan_pimpinan2, alat(nama_alat, tipe_alat), profiles!peminjam_id(nama, email)"
-    )
-    .eq("status", "pengembalian_ditugaskan")
-    .eq("ditugaskan_ke", user?.id ?? "")
-    .order("tanggal_pinjam")) as { data: TugasPengembalian[] | null };
 
   const { data: dipinjam } = (await supabase
     .from("peminjaman")
@@ -57,7 +42,6 @@ export default async function AdminPeminjamanPage() {
   };
 
   const semuaId = [
-    ...(menungguPengembalian ?? []).map((m) => m.id),
     ...(dipinjam ?? []).map((d) => d.id),
     ...(riwayat ?? []).map((r) => r.id),
   ];
@@ -77,30 +61,19 @@ export default async function AdminPeminjamanPage() {
     checklistByPeminjaman[c.peminjaman_id].push(c);
   }
 
+  const jumlahUnitMap = await getJumlahUnitTambahan(supabase, [
+    ...semuaId,
+    ...(siapDikembalikan ?? []).map((s) => s.id),
+  ]);
+
   return (
     <div className="min-h-screen">
       <Navbar />
       <main className="mx-auto max-w-4xl space-y-8 px-4 py-8">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">
-            Tugas Pemeriksaan Pengembalian
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {menungguPengembalian?.length ?? 0} alat ditugaskan Pimpinan 2
-            untuk kamu periksa kondisinya sebelum resmi dikembalikan
-          </p>
-          <div className="mt-6">
-            <PemeriksaanPengembalianList
-              data={menungguPengembalian ?? []}
-              checklistByPeminjaman={checklistByPeminjaman}
-            />
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900">
             Peminjaman Alat Survei Aktif
-          </h2>
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
             {dipinjam?.length ?? 0} alat sedang dipinjam
           </p>
@@ -108,6 +81,7 @@ export default async function AdminPeminjamanPage() {
             <KembalikanList
               data={dipinjam ?? []}
               checklistByPeminjaman={checklistByPeminjaman}
+              jumlahUnitMap={jumlahUnitMap}
             />
           </div>
         </div>
@@ -117,11 +91,14 @@ export default async function AdminPeminjamanPage() {
             Siap Dikonfirmasi Kembali
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            {siapDikembalikan?.length ?? 0} alat sudah di-ACC Pimpinan 2,
+            {siapDikembalikan?.length ?? 0} alat sudah disetujui Pimpinan 2,
             tinggal konfirmasi final
           </p>
           <div className="mt-4">
-            <KonfirmasiKembaliList data={siapDikembalikan ?? []} />
+            <KonfirmasiKembaliList
+              data={siapDikembalikan ?? []}
+              jumlahUnitMap={jumlahUnitMap}
+            />
           </div>
         </div>
 
@@ -136,6 +113,7 @@ export default async function AdminPeminjamanPage() {
             <RiwayatList
               data={riwayat ?? []}
               checklistByPeminjaman={checklistByPeminjaman}
+              jumlahUnitMap={jumlahUnitMap}
             />
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
+import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type PemeriksaanPengembalian = {
   id: string;
@@ -17,8 +18,10 @@ export type PemeriksaanPengembalian = {
 
 export default function AccPemeriksaanPengembalianList({
   data,
+  jumlahUnitMap,
 }: {
   data: PemeriksaanPengembalian[];
+  jumlahUnitMap: Record<string, number>;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -53,7 +56,7 @@ export default function AccPemeriksaanPengembalianList({
   if (data.length === 0) {
     return (
       <p className="text-slate-400">
-        Tidak ada hasil pemeriksaan pengembalian yang menunggu ACC.
+        Tidak ada hasil pemeriksaan pengembalian yang menunggu persetujuan.
       </p>
     );
   }
@@ -67,7 +70,7 @@ export default function AccPemeriksaanPengembalianList({
         >
           <div>
             <p className="font-medium text-slate-900">
-              {p.alat?.nama_alat ?? "-"}{" "}
+              {labelJumlahUnit(p.alat?.nama_alat ?? "-", jumlahUnitMap[p.id])}{" "}
               {p.alat?.tipe_alat && `(${p.alat.tipe_alat})`}
             </p>
             <p className="text-sm text-slate-500">
@@ -101,7 +104,7 @@ export default function AccPemeriksaanPengembalianList({
 
           <div className="mt-3 flex gap-2">
             <Button onClick={() => handleAcc(p.id)} disabled={loadingId === p.id}>
-              ACC
+              Setujui
             </Button>
             <Button
               variant="secondary"

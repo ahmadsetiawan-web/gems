@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/Navbar";
+import { getJumlahUnitTambahan, labelJumlahUnit } from "@/lib/peminjamanKolektif";
 import StatusPeminjamanList, { type StatusRow } from "./StatusPeminjamanList";
 
 type SurveiRow = {
@@ -42,11 +43,16 @@ export default async function StatusPeminjamanPage() {
     .neq("status", "draft")
     .order("created_at", { ascending: false })) as { data: OrganikRow[] | null };
 
+  const jumlahUnitMap = await getJumlahUnitTambahan(
+    supabase,
+    (survei ?? []).map((r) => r.id)
+  );
+
   const rows: StatusRow[] = [
     ...(survei ?? []).map((r) => ({
       id: r.id,
       jenis: "Survei" as const,
-      namaAlat: r.alat?.nama_alat ?? "-",
+      namaAlat: labelJumlahUnit(r.alat?.nama_alat ?? "-", jumlahUnitMap[r.id]),
       peminjam: r.profiles?.nama || r.profiles?.email || "-",
       tanggalPinjam: r.tanggal_pinjam,
       tanggalRencanaKembali: r.tanggal_rencana_kembali,

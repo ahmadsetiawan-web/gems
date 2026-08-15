@@ -28,7 +28,8 @@ export default async function AjukanPinjamPage(
     .from("kelengkapan_alat")
     .select("id, nama_bagian, no_inventaris, kategori, jumlah_standar")
     .eq("id_alat", idAlat)
-    .order("urutan");
+    .order("urutan")
+    .order("created_at");
 
   const { data: draftRow } = await supabase
     .from("peminjaman")

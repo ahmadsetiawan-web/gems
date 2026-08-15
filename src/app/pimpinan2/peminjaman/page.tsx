@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/Navbar";
+import { getJumlahUnitTambahan } from "@/lib/peminjamanKolektif";
 import PenugasanList, { type Pengajuan } from "./PenugasanList";
 import AccPemeriksaanList, { type Pemeriksaan } from "./AccPemeriksaanList";
 import PenugasanPengembalianList, {
@@ -73,6 +74,13 @@ export default async function Pimpinan2PeminjamanPage() {
     checklistByPeminjaman[c.peminjaman_id].push(c);
   }
 
+  const jumlahUnitMap = await getJumlahUnitTambahan(supabase, [
+    ...(menungguPenugasan ?? []).map((p) => p.id),
+    ...(menungguAcc ?? []).map((p) => p.id),
+    ...(dipinjam ?? []).map((p) => p.id),
+    ...(menungguAccPengembalian ?? []).map((p) => p.id),
+  ]);
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -90,20 +98,24 @@ export default async function Pimpinan2PeminjamanPage() {
               data={menungguPenugasan ?? []}
               teknisiList={teknisiList ?? []}
               checklistByPeminjaman={checklistByPeminjaman}
+              jumlahUnitMap={jumlahUnitMap}
             />
           </div>
         </div>
 
         <div>
           <h2 className="text-xl font-semibold text-slate-900">
-            Menunggu ACC Hasil Pemeriksaan
+            Menunggu Persetujuan Hasil Pemeriksaan
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            {menungguAcc?.length ?? 0} hasil pemeriksaan Teknisi menunggu ACC
+            {menungguAcc?.length ?? 0} hasil pemeriksaan Teknisi menunggu persetujuan
             kamu
           </p>
           <div className="mt-4">
-            <AccPemeriksaanList data={menungguAcc ?? []} />
+            <AccPemeriksaanList
+              data={menungguAcc ?? []}
+              jumlahUnitMap={jumlahUnitMap}
+            />
           </div>
         </div>
 
@@ -119,21 +131,23 @@ export default async function Pimpinan2PeminjamanPage() {
             <PenugasanPengembalianList
               data={dipinjam ?? []}
               teknisiList={teknisiList ?? []}
+              jumlahUnitMap={jumlahUnitMap}
             />
           </div>
         </div>
 
         <div>
           <h2 className="text-xl font-semibold text-slate-900">
-            Menunggu ACC Pemeriksaan Pengembalian
+            Menunggu Persetujuan Pemeriksaan Pengembalian
           </h2>
           <p className="mt-1 text-sm text-slate-500">
             {menungguAccPengembalian?.length ?? 0} hasil pemeriksaan
-            pengembalian Teknisi menunggu ACC kamu
+            pengembalian Teknisi menunggu persetujuan kamu
           </p>
           <div className="mt-4">
             <AccPemeriksaanPengembalianList
               data={menungguAccPengembalian ?? []}
+              jumlahUnitMap={jumlahUnitMap}
             />
           </div>
         </div>

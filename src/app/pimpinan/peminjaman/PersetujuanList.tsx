@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import ChecklistDisplay from "@/components/ChecklistDisplay";
+import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type Pengajuan = {
   id: string;
@@ -26,9 +27,11 @@ const DEFAULT_CATATAN = "Pergunakan peralatan survei dengan baik dan semestinya.
 export default function PersetujuanList({
   data,
   checklistByPeminjaman,
+  jumlahUnitMap,
 }: {
   data: Pengajuan[];
   checklistByPeminjaman: Record<string, ChecklistRow[]>;
+  jumlahUnitMap: Record<string, number>;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -88,7 +91,7 @@ export default function PersetujuanList({
         >
           <div>
             <p className="font-medium text-slate-900">
-              {p.alat?.nama_alat ?? "-"}{" "}
+              {labelJumlahUnit(p.alat?.nama_alat ?? "-", jumlahUnitMap[p.id])}{" "}
               {p.alat?.tipe_alat && `(${p.alat.tipe_alat})`}
             </p>
             <p className="text-sm text-slate-500">

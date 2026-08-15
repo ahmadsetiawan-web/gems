@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import ChecklistDisplay from "@/components/ChecklistDisplay";
+import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type RiwayatRow = {
   id: string;
@@ -38,9 +39,11 @@ const statusStyle: Record<string, string> = {
 export default function RiwayatList({
   data,
   checklistByPeminjaman,
+  jumlahUnitMap,
 }: {
   data: RiwayatRow[];
   checklistByPeminjaman: Record<string, ChecklistRow[]>;
+  jumlahUnitMap: Record<string, number>;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -75,7 +78,7 @@ export default function RiwayatList({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="font-medium text-slate-900">
-                {r.alat?.nama_alat ?? "-"}{" "}
+                {labelJumlahUnit(r.alat?.nama_alat ?? "-", jumlahUnitMap[r.id])}{" "}
                 {r.alat?.tipe_alat && `(${r.alat.tipe_alat})`}
               </p>
               <p className="text-sm text-slate-500">
@@ -121,21 +124,21 @@ export default function RiwayatList({
               {r.status === "dikembalikan" && (
                 <>
                   <Link
-                    href={`/pengembalian/surat-persetujuan/${r.id}`}
+                    href={`/surat-persetujuan/${r.id}`}
                     target="_blank"
                     className="text-sm text-blue-600 hover:underline"
                   >
                     Cetak Surat Persetujuan
                   </Link>
                   <Link
-                    href={`/pengembalian/surat/${r.id}`}
+                    href={`/surat/${r.id}`}
                     target="_blank"
                     className="text-sm text-blue-600 hover:underline"
                   >
                     Cetak Surat Peminjaman
                   </Link>
                   <Link
-                    href={`/pengembalian/surat-pengembalian/${r.id}`}
+                    href={`/surat-pengembalian/${r.id}`}
                     target="_blank"
                     className="text-sm text-blue-600 hover:underline"
                   >

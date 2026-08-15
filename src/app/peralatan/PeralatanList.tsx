@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type AlatRow = {
   id_alat: string;
@@ -33,6 +34,8 @@ export default function PeralatanList({
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const router = useRouter();
 
   const groups = new Map<string, AlatRow[]>();
   for (const a of data) {
@@ -43,6 +46,19 @@ export default function PeralatanList({
   const groupList = Array.from(groups.entries())
     .filter(([nama]) => nama.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => a[0].localeCompare(b[0]));
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function ajukanKolektif(ids: string[]) {
+    router.push(`/pinjam/ajukan-kolektif?ids=${ids.map(encodeURIComponent).join(",")}`);
+  }
 
   return (
     <div>
@@ -110,49 +126,111 @@ export default function PeralatanList({
               </button>
 
               {isOpen && (
-                <div className="divide-y divide-slate-100 border-t border-slate-100">
-                  {units.map((u) => {
-                    const bisaPinjam =
-                      u.status_ketersediaan === "Tersedia" &&
-                      u.kondisi_alat === "Baik";
+                <div>
+                  {(() => {
+                    const availableIds = units
+                      .filter(
+                        (u) =>
+                          u.status_ketersediaan === "Tersedia" &&
+                          u.kondisi_alat === "Baik"
+                      )
+                      .map((u) => u.id_alat);
+                    const selectedInGroup = availableIds.filter((id) =>
+                      selected.has(id)
+                    );
+                    const semuaTerpilih =
+                      availableIds.length > 0 &&
+                      selectedInGroup.length === availableIds.length;
                     return (
-                      <div key={u.id_alat} className="px-4 py-3">
-                        <div className="text-sm">
-                          <p className="font-medium text-slate-800">
-                            {u.id_alat} {u.tipe_alat && `- ${u.tipe_alat}`}
-                          </p>
-                          <p className="text-slate-500">
-                            {u.tahun_alat ?? "-"}
-                            {u.kode_alat && ` · Kode: ${u.kode_alat}`}
-                            {u.no_inventaris && ` · No. Inv: ${u.no_inventaris}`}
-                          </p>
-                          <p className="text-slate-500">
-                            Lokasi: {u.lokasi_penyimpanan ?? "-"}
-                          </p>
-                          <p>
-                            <span
-                              className={
-                                u.kondisi_alat === "Baik"
-                                  ? "text-green-700"
-                                  : "text-red-700"
+                      availableIds.length > 1 && (
+                        <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50 px-4 py-2 text-sm">
+                          <label className="flex items-center gap-2 text-slate-600">
+                            <input
+                              type="checkbox"
+                              checked={semuaTerpilih}
+                              onChange={() =>
+                                setSelected((prev) => {
+                                  const next = new Set(prev);
+                                  if (semuaTerpilih) {
+                                    availableIds.forEach((id) => next.delete(id));
+                                  } else {
+                                    availableIds.forEach((id) => next.add(id));
+                                  }
+                                  return next;
+                                })
                               }
+                              className="h-4 w-4 rounded border-slate-300 accent-[#F6EE29]"
+                            />
+                            Pilih semua unit tersedia untuk peminjaman kolektif
+                          </label>
+                          {selectedInGroup.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => ajukanKolektif(selectedInGroup)}
+                              className="rounded-lg bg-[#F6EE29] px-3 py-1.5 font-medium text-slate-900 hover:brightness-95"
                             >
-                              {u.kondisi_alat}
-                            </span>{" "}
-                            &middot; {u.status_ketersediaan}
-                          </p>
-                          {bisaPinjam && (
-                            <Link
-                              href={`/pinjam/ajukan/${encodeURIComponent(u.id_alat)}`}
-                              className="mt-1 inline-block font-medium text-[#8a8300] hover:underline"
-                            >
-                              Ajukan Pinjam
-                            </Link>
+                              Ajukan Kolektif ({selectedInGroup.length} unit)
+                            </button>
                           )}
                         </div>
-                      </div>
+                      )
                     );
-                  })}
+                  })()}
+                  <div className="divide-y divide-slate-100 border-t border-slate-100">
+                    {units.map((u) => {
+                      const bisaPinjam =
+                        u.status_ketersediaan === "Tersedia" &&
+                        u.kondisi_alat === "Baik";
+                      return (
+                        <div
+                          key={u.id_alat}
+                          className="flex items-start gap-3 px-4 py-3"
+                        >
+                          {bisaPinjam && (
+                            <input
+                              type="checkbox"
+                              checked={selected.has(u.id_alat)}
+                              onChange={() => toggleSelected(u.id_alat)}
+                              className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 accent-[#F6EE29]"
+                            />
+                          )}
+                          <div className="flex-1 text-sm">
+                            <p className="font-medium text-slate-800">
+                              {u.id_alat} {u.tipe_alat && `- ${u.tipe_alat}`}
+                            </p>
+                            <p className="text-slate-500">
+                              {u.tahun_alat ?? "-"}
+                              {u.kode_alat && ` · Kode: ${u.kode_alat}`}
+                              {u.no_inventaris && ` · No. Inv: ${u.no_inventaris}`}
+                            </p>
+                            <p className="text-slate-500">
+                              Lokasi: {u.lokasi_penyimpanan ?? "-"}
+                            </p>
+                            <p>
+                              <span
+                                className={
+                                  u.kondisi_alat === "Baik"
+                                    ? "text-green-700"
+                                    : "text-red-700"
+                                }
+                              >
+                                {u.kondisi_alat}
+                              </span>{" "}
+                              &middot; {u.status_ketersediaan}
+                            </p>
+                            {bisaPinjam && (
+                              <Link
+                                href={`/pinjam/ajukan/${encodeURIComponent(u.id_alat)}`}
+                                className="mt-1 inline-block font-medium text-[#8a8300] hover:underline"
+                              >
+                                Ajukan Pinjam
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

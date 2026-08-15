@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import ChecklistDisplay from "@/components/ChecklistDisplay";
 import StatusBadge from "@/components/StatusBadge";
 
+const BELUM_DISETUJUI = ["draft", "diajukan", "ditolak"];
+
 export default async function RiwayatPage() {
   const supabase = await createClient();
 
@@ -33,6 +35,23 @@ export default async function RiwayatPage() {
     )
     .eq("peminjam_id", user.id)
     .order("created_at", { ascending: false })) as { data: RiwayatRow[] | null };
+
+  const riwayatSurveiIds = (riwayat ?? []).map((r) => r.id);
+  const { data: unitTambahanRows } =
+    riwayatSurveiIds.length > 0
+      ? await supabase
+          .from("peminjaman_unit_tambahan")
+          .select("peminjaman_id")
+          .in("peminjaman_id", riwayatSurveiIds)
+      : { data: [] as { peminjaman_id: string }[] };
+
+  const unitTambahanCount = new Map<string, number>();
+  for (const row of unitTambahanRows ?? []) {
+    unitTambahanCount.set(
+      row.peminjaman_id,
+      (unitTambahanCount.get(row.peminjaman_id) ?? 0) + 1
+    );
+  }
 
   type ChecklistRow = {
     peminjaman_id: string;
@@ -100,9 +119,15 @@ export default async function RiwayatPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-medium text-slate-900">
-                      {r.alat?.nama_alat ?? "-"}
-                    </p>
+                    {(() => {
+                      const jumlahUnit = (unitTambahanCount.get(r.id) ?? 0) + 1;
+                      return (
+                        <p className="font-medium text-slate-900">
+                          {r.alat?.nama_alat ?? "-"}
+                          {jumlahUnit > 1 && ` — ${jumlahUnit} unit`}
+                        </p>
+                      );
+                    })()}
                     <p className="text-sm text-slate-500">
                       Pinjam: {r.tanggal_pinjam} &middot; Rencana kembali:{" "}
                       {r.tanggal_rencana_kembali}
@@ -131,13 +156,48 @@ export default async function RiwayatPage() {
                         jumlah: c.jumlah_dibawa,
                       }))}
                     />
-                    {r.status === "draft" && (
-                      <Link
-                        href={`/pinjam/ajukan/${encodeURIComponent(r.id_alat)}`}
-                        className="mt-1 inline-block text-sm font-medium text-[#8a8300] hover:underline"
-                      >
-                        Lanjutkan Draft
-                      </Link>
+                    {r.status === "draft" &&
+                      ((unitTambahanCount.get(r.id) ?? 0) > 0 ? (
+                        <Link
+                          href={`/pinjam/ajukan-kolektif?draft=${r.id}`}
+                          className="mt-1 inline-block text-sm font-medium text-[#8a8300] hover:underline"
+                        >
+                          Lanjutkan Draft
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/pinjam/ajukan/${encodeURIComponent(r.id_alat)}`}
+                          className="mt-1 inline-block text-sm font-medium text-[#8a8300] hover:underline"
+                        >
+                          Lanjutkan Draft
+                        </Link>
+                      ))}
+                    {!BELUM_DISETUJUI.includes(r.status) && (
+                      <div className="mt-2 flex flex-col items-start gap-1">
+                        <Link
+                          href={`/surat-persetujuan/${r.id}`}
+                          target="_blank"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Cetak Surat Persetujuan
+                        </Link>
+                        <Link
+                          href={`/surat/${r.id}`}
+                          target="_blank"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Cetak Surat Peminjaman
+                        </Link>
+                        {r.status === "dikembalikan" && (
+                          <Link
+                            href={`/surat-pengembalian/${r.id}`}
+                            target="_blank"
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Cetak Surat Pengembalian
+                          </Link>
+                        )}
+                      </div>
                     )}
                   </div>
                   <StatusBadge status={r.status} />

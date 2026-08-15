@@ -77,17 +77,17 @@ export default async function Navbar() {
           {(isAdmin || isTeknisi) && (
             <>
               <NavDropdown
-                label="Serah Terima"
+                label="Pemeriksaan Alat"
                 items={[
-                  { href: "/serah-terima", label: "Serah Terima Alat Survei" },
+                  { href: "/pemeriksaan-alat", label: "Pemeriksaan Alat Survei" },
                   {
-                    href: "/serah-terima-organik",
-                    label: "Serah Terima Alat Organik",
+                    href: "/pemeriksaan-alat-organik",
+                    label: "Pemeriksaan Alat Organik",
                   },
                 ]}
               />
               <NavDropdown
-                label="Pengembalian"
+                label="Pengembalian Alat"
                 items={[
                   { href: "/pengembalian", label: "Pengembalian Alat Survei" },
                   {

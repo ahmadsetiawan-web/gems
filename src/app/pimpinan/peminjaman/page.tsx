@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/Navbar";
+import { getJumlahUnitTambahan } from "@/lib/peminjamanKolektif";
 import PersetujuanList, { type Pengajuan } from "./PersetujuanList";
 
 export default async function PersetujuanPage() {
@@ -56,6 +57,8 @@ export default async function PersetujuanPage() {
     checklistByPeminjaman[c.peminjaman_id].push(c);
   }
 
+  const jumlahUnitMap = await getJumlahUnitTambahan(supabase, pengajuanIds);
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -76,6 +79,7 @@ export default async function PersetujuanPage() {
           <PersetujuanList
             data={pengajuan ?? []}
             checklistByPeminjaman={checklistByPeminjaman}
+            jumlahUnitMap={jumlahUnitMap}
           />
         </div>
       </main>

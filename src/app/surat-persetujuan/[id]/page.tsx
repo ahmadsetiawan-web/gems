@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/Navbar";
 import KopSurat from "@/components/KopSurat";
@@ -14,7 +14,13 @@ type PersetujuanDetail = {
   disetujui_oleh: string | null;
   disetujui_oleh_nip: string | null;
   disetujui_pada: string | null;
-  alat: { nama_alat: string; tipe_alat: string | null; kode_alat: string | null } | null;
+  alat: {
+    id_alat: string;
+    nama_alat: string;
+    tipe_alat: string | null;
+    kode_alat: string | null;
+    no_inventaris: string | null;
+  } | null;
   profiles: { nama: string | null; nip: string | null } | null;
 };
 
@@ -34,16 +40,23 @@ function formatWaktu(iso: string | null) {
 }
 
 export default async function SuratPersetujuanPage(
-  props: PageProps<"/pengembalian/surat-persetujuan/[id]">
+  props: PageProps<"/surat-persetujuan/[id]">
 ) {
   const { id } = await props.params;
 
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // RLS peminjaman: pemilik lihat miliknya sendiri, staff lihat semua --
+  // jadi kalau baris ini null berarti bukan pemilik dan bukan staff.
   const { data: peminjaman } = (await supabase
     .from("peminjaman")
     .select(
-      "id, tanggal_pinjam, tanggal_rencana_kembali, keperluan, status, diajukan_pada, disetujui_oleh, disetujui_oleh_nip, disetujui_pada, alat(nama_alat, tipe_alat, kode_alat), profiles!peminjam_id(nama, nip)"
+      "id, tanggal_pinjam, tanggal_rencana_kembali, keperluan, status, diajukan_pada, disetujui_oleh, disetujui_oleh_nip, disetujui_pada, alat(id_alat, nama_alat, tipe_alat, kode_alat, no_inventaris), profiles!peminjam_id(nama, nip)"
     )
     .eq("id", id)
     .single()) as { data: PersetujuanDetail | null };
@@ -52,6 +65,24 @@ export default async function SuratPersetujuanPage(
 
   const sudahDisetujui =
     !!peminjaman.disetujui_oleh && peminjaman.status !== "ditolak";
+
+  type UnitTambahan = {
+    alat: {
+      id_alat: string;
+      nama_alat: string;
+      tipe_alat: string | null;
+      kode_alat: string | null;
+      no_inventaris: string | null;
+    } | null;
+  };
+
+  const { data: unitTambahanRaw } = (await supabase
+    .from("peminjaman_unit_tambahan")
+    .select("alat(id_alat, nama_alat, tipe_alat, kode_alat, no_inventaris)")
+    .eq("peminjaman_id", id)) as { data: UnitTambahan[] | null };
+
+  const unitTambahan = unitTambahanRaw ?? [];
+  const isKolektif = unitTambahan.length > 0;
 
   const { data: pegawai } = peminjaman.profiles?.nip
     ? await supabase
@@ -89,7 +120,7 @@ export default async function SuratPersetujuanPage(
           <div className="border border-slate-900 bg-white text-xs">
             <KopSurat />
             <div className="border-b border-slate-900 p-1.5 text-center font-bold">
-              DATA SURAT PERSETUJUAN PEMINJAMAN
+              SURAT PERSETUJUAN PEMINJAMAN
             </div>
 
             <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 border-b border-slate-900 p-3">
@@ -109,18 +140,28 @@ export default async function SuratPersetujuanPage(
                 <span className="text-slate-500">Keperluan</span>
                 <p className="font-medium">{peminjaman.keperluan ?? "-"}</p>
               </div>
-              <div>
-                <span className="text-slate-500">Nama Alat</span>
-                <p className="font-medium">{peminjaman.alat?.nama_alat ?? "-"}</p>
-              </div>
-              <div>
-                <span className="text-slate-500">Tipe Alat</span>
-                <p className="font-medium">{peminjaman.alat?.tipe_alat ?? "-"}</p>
-              </div>
-              <div>
-                <span className="text-slate-500">Kode Alat</span>
-                <p className="font-medium">{peminjaman.alat?.kode_alat ?? "-"}</p>
-              </div>
+              {!isKolektif && (
+                <>
+                  <div>
+                    <span className="text-slate-500">Nama Alat</span>
+                    <p className="font-medium">
+                      {peminjaman.alat?.nama_alat ?? "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Tipe Alat</span>
+                    <p className="font-medium">
+                      {peminjaman.alat?.tipe_alat ?? "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Kode Alat</span>
+                    <p className="font-medium">
+                      {peminjaman.alat?.kode_alat ?? "-"}
+                    </p>
+                  </div>
+                </>
+              )}
               <div>
                 <span className="text-slate-500">Tanggal Pinjam</span>
                 <p className="font-medium">{peminjaman.tanggal_pinjam}</p>
@@ -132,6 +173,51 @@ export default async function SuratPersetujuanPage(
                 </p>
               </div>
             </div>
+
+            {isKolektif && (
+              <table className="w-full border-collapse border-b border-slate-900 text-xs">
+                <thead>
+                  <tr className="border-b border-slate-900">
+                    <th className="border-r border-slate-900 px-2 py-0.5 text-left">
+                      No.
+                    </th>
+                    <th className="border-r border-slate-900 px-2 py-0.5 text-left">
+                      Nama Alat
+                    </th>
+                    <th className="border-r border-slate-900 px-2 py-0.5 text-left">
+                      Tipe Alat
+                    </th>
+                    <th className="border-r border-slate-900 px-2 py-0.5 text-left">
+                      Kode Alat
+                    </th>
+                    <th className="px-2 py-0.5 text-left">No. Inventaris</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[peminjaman.alat, ...unitTambahan.map((u) => u.alat)].map(
+                    (u, i) => (
+                      <tr key={u?.id_alat ?? i} className="border-b border-slate-900 last:border-b-0">
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {i + 1}
+                        </td>
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {u?.nama_alat ?? "-"}
+                        </td>
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {u?.tipe_alat ?? "-"}
+                        </td>
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {u?.kode_alat ?? "-"}
+                        </td>
+                        <td className="px-2 py-0.5">
+                          {u?.no_inventaris ?? "-"}
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            )}
 
             <div className="break-inside-avoid-page grid grid-cols-2 gap-x-4 gap-y-2 p-3">
               <div>

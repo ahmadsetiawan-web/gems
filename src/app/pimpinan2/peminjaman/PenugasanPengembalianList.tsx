@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
+import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type Pinjaman = {
   id: string;
@@ -19,9 +20,11 @@ type Teknisi = { id: string; nama: string | null; email: string };
 export default function PenugasanPengembalianList({
   data,
   teknisiList,
+  jumlahUnitMap,
 }: {
   data: Pinjaman[];
   teknisiList: Teknisi[];
+  jumlahUnitMap: Record<string, number>;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -66,7 +69,7 @@ export default function PenugasanPengembalianList({
         >
           <div>
             <p className="font-medium text-slate-900">
-              {p.alat?.nama_alat ?? "-"}{" "}
+              {labelJumlahUnit(p.alat?.nama_alat ?? "-", jumlahUnitMap[p.id])}{" "}
               {p.alat?.tipe_alat && `(${p.alat.tipe_alat})`}
             </p>
             <p className="text-sm text-slate-500">

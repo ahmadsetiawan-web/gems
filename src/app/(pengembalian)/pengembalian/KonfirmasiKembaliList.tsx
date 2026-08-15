@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
+import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type SiapDikembalikan = {
   id: string;
@@ -19,8 +20,10 @@ export type SiapDikembalikan = {
 
 export default function KonfirmasiKembaliList({
   data,
+  jumlahUnitMap,
 }: {
   data: SiapDikembalikan[];
+  jumlahUnitMap: Record<string, number>;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -63,7 +66,7 @@ export default function KonfirmasiKembaliList({
         >
           <div>
             <p className="font-medium text-slate-900">
-              {p.alat?.nama_alat ?? "-"}{" "}
+              {labelJumlahUnit(p.alat?.nama_alat ?? "-", jumlahUnitMap[p.id])}{" "}
               {p.alat?.tipe_alat && `(${p.alat.tipe_alat})`}
             </p>
             <p className="text-sm text-slate-500">

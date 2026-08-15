@@ -54,7 +54,7 @@ export default function AccPemeriksaanPengembalianOrganikList({
   if (data.length === 0) {
     return (
       <p className="text-slate-400">
-        Tidak ada hasil pemeriksaan pengembalian yang menunggu ACC.
+        Tidak ada hasil pemeriksaan pengembalian yang menunggu persetujuan.
       </p>
     );
   }
@@ -103,7 +103,7 @@ export default function AccPemeriksaanPengembalianOrganikList({
 
           <div className="mt-3 flex gap-2">
             <Button onClick={() => handleAcc(p.id)} disabled={loadingId === p.id}>
-              ACC
+              Setujui
             </Button>
             <Button
               variant="secondary"

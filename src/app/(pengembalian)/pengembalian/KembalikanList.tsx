@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ChecklistDisplay from "@/components/ChecklistDisplay";
+import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type Pinjaman = {
   id: string;
@@ -22,9 +23,11 @@ type ChecklistRow = {
 export default function KembalikanList({
   data,
   checklistByPeminjaman,
+  jumlahUnitMap,
 }: {
   data: Pinjaman[];
   checklistByPeminjaman: Record<string, ChecklistRow[]>;
+  jumlahUnitMap: Record<string, number>;
 }) {
   if (data.length === 0) {
     return <p className="text-slate-400">Tidak ada alat yang sedang dipinjam.</p>;
@@ -39,7 +42,7 @@ export default function KembalikanList({
         >
           <div>
             <p className="font-medium text-slate-900">
-              {p.alat?.nama_alat ?? "-"}{" "}
+              {labelJumlahUnit(p.alat?.nama_alat ?? "-", jumlahUnitMap[p.id])}{" "}
               {p.alat?.tipe_alat && `(${p.alat.tipe_alat})`}
             </p>
             <p className="text-sm text-slate-500">
@@ -64,7 +67,7 @@ export default function KembalikanList({
 
           <div className="mt-3">
             <Link
-              href={`/pengembalian/surat/${p.id}`}
+              href={`/surat/${p.id}`}
               target="_blank"
               className="text-sm text-blue-600 hover:underline"
             >

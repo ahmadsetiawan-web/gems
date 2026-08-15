@@ -29,19 +29,30 @@ const roleColumns: { key: RoleKey; label: string }[] = [
   { key: "is_teknisi", label: "Teknisi" },
 ];
 
+function hasRole(r: PenggunaRow) {
+  return !!r.profile && roleColumns.some(({ key }) => r.profile![key]);
+}
+
 export default function KelolaPenggunaList({ data }: { data: PenggunaRow[] }) {
   const supabase = createClient();
   const [query, setQuery] = useState("");
+  const [hanyaPunyaRole, setHanyaPunyaRole] = useState(true);
   const [rows, setRows] = useState(data);
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const filtered = rows.filter((r) => {
     const q = query.toLowerCase();
-    return (
+    const cocokPencarian =
       r.nama.toLowerCase().includes(q) ||
       (r.nip ?? "").toLowerCase().includes(q) ||
-      (r.profile?.email ?? "").toLowerCase().includes(q)
-    );
+      (r.profile?.email ?? "").toLowerCase().includes(q);
+    if (!cocokPencarian) return false;
+    // Toggle "hanya yang sudah punya role" cuma berlaku saat kotak
+    // pencarian kosong -- begitu admin mengetik nama/NIP, anggap dia
+    // sedang cari orang baru untuk diberi role, jadi tampilkan semua
+    // yang cocok tanpa terpotong toggle ini.
+    if (query.trim() === "" && hanyaPunyaRole) return hasRole(r);
+    return true;
   });
 
   async function toggleRole(profileId: string, key: RoleKey, current: boolean) {
@@ -70,8 +81,17 @@ export default function KelolaPenggunaList({ data }: { data: PenggunaRow[] }) {
         placeholder="Cari nama atau NIP..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="mb-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-[#d1cb23] focus:outline-none focus:ring-2 focus:ring-[#F6EE29]/40"
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-[#d1cb23] focus:outline-none focus:ring-2 focus:ring-[#F6EE29]/40"
       />
+      <label className="mb-4 mt-2 flex items-center gap-2 text-sm text-slate-600">
+        <input
+          type="checkbox"
+          checked={hanyaPunyaRole}
+          onChange={(e) => setHanyaPunyaRole(e.target.checked)}
+          className="h-4 w-4 rounded border-slate-300 accent-[#F6EE29]"
+        />
+        Tampilkan hanya yang sudah punya role
+      </label>
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
         <table className="w-full text-sm">
           <thead>

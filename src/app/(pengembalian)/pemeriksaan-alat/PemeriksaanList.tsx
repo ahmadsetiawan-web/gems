@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
+import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type Penugasan = {
   id: string;
@@ -41,10 +42,12 @@ export default function PemeriksaanList({
   data,
   checklistByPeminjaman,
   kelengkapanByAlat,
+  jumlahUnitMap,
 }: {
   data: Penugasan[];
   checklistByPeminjaman: Record<string, ChecklistRow[]>;
   kelengkapanByAlat: Record<string, KelengkapanItem[]>;
+  jumlahUnitMap: Record<string, number>;
 }) {
   const supabase = createClient();
   const router = useRouter();
@@ -170,7 +173,7 @@ export default function PemeriksaanList({
           >
             <div>
               <p className="font-medium text-slate-900">
-                {p.alat?.nama_alat ?? "-"}{" "}
+                {labelJumlahUnit(p.alat?.nama_alat ?? "-", jumlahUnitMap[p.id])}{" "}
                 {p.alat?.tipe_alat && `(${p.alat.tipe_alat})`}
               </p>
               <p className="text-sm text-slate-500">
@@ -260,7 +263,7 @@ export default function PemeriksaanList({
                 Selesai Diperiksa
               </Button>
               <Link
-                href={`/pengembalian/surat/${p.id}`}
+                href={`/surat/${p.id}`}
                 target="_blank"
                 className="text-sm text-blue-600 hover:underline"
               >

@@ -139,9 +139,14 @@ export default function PengajuanForm({
       peminjamanId = pengajuan.id;
       setDraftId(peminjamanId);
     } else {
+      // Jangan ubah status di sini dulu -- kebijakan hapus
+      // peminjaman_kelengkapan cuma berlaku selama status masih "draft".
+      // Kalau status keburu jadi "diajukan", baris checklist lama gagal
+      // terhapus (diam-diam, tanpa error) lalu insert di bawah malah
+      // menambah baris duplikat, bukan menggantikan.
       const { error: updateError } = await supabase
         .from("peminjaman")
-        .update(finalize ? { ...payload, status: "diajukan" } : payload)
+        .update(payload)
         .eq("id", peminjamanId);
 
       if (updateError) {
@@ -178,6 +183,19 @@ export default function PengajuanForm({
       if (checklistError) {
         setSubmitting(false);
         setError(checklistError.message);
+        return;
+      }
+    }
+
+    if (finalize) {
+      const { error: finalizeError } = await supabase
+        .from("peminjaman")
+        .update({ status: "diajukan" })
+        .eq("id", peminjamanId);
+
+      if (finalizeError) {
+        setSubmitting(false);
+        setError(finalizeError.message);
         return;
       }
     }

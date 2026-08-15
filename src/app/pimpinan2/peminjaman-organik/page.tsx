@@ -76,10 +76,10 @@ export default async function Pimpinan2PeminjamanOrganikPage() {
 
         <div>
           <h2 className="text-xl font-semibold text-slate-900">
-            Menunggu ACC Hasil Pemeriksaan
+            Menunggu Persetujuan Hasil Pemeriksaan
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            {menungguAcc?.length ?? 0} hasil pemeriksaan Teknisi menunggu ACC
+            {menungguAcc?.length ?? 0} hasil pemeriksaan Teknisi menunggu persetujuan
             kamu
           </p>
           <div className="mt-4">
@@ -105,11 +105,11 @@ export default async function Pimpinan2PeminjamanOrganikPage() {
 
         <div>
           <h2 className="text-xl font-semibold text-slate-900">
-            Menunggu ACC Pemeriksaan Pengembalian
+            Menunggu Persetujuan Pemeriksaan Pengembalian
           </h2>
           <p className="mt-1 text-sm text-slate-500">
             {menungguAccPengembalian?.length ?? 0} hasil pemeriksaan
-            pengembalian Teknisi menunggu ACC kamu
+            pengembalian Teknisi menunggu persetujuan kamu
           </p>
           <div className="mt-4">
             <AccPemeriksaanPengembalianOrganikList

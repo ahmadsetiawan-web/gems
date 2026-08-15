@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
+import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type Pemeriksaan = {
   id: string;
@@ -16,7 +17,13 @@ export type Pemeriksaan = {
   profiles: { nama: string | null; email: string } | null;
 };
 
-export default function AccPemeriksaanList({ data }: { data: Pemeriksaan[] }) {
+export default function AccPemeriksaanList({
+  data,
+  jumlahUnitMap,
+}: {
+  data: Pemeriksaan[];
+  jumlahUnitMap: Record<string, number>;
+}) {
   const supabase = createClient();
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -47,7 +54,7 @@ export default function AccPemeriksaanList({ data }: { data: Pemeriksaan[] }) {
   if (data.length === 0) {
     return (
       <p className="text-slate-400">
-        Tidak ada hasil pemeriksaan yang menunggu ACC.
+        Tidak ada hasil pemeriksaan yang menunggu persetujuan.
       </p>
     );
   }
@@ -61,7 +68,7 @@ export default function AccPemeriksaanList({ data }: { data: Pemeriksaan[] }) {
         >
           <div>
             <p className="font-medium text-slate-900">
-              {p.alat?.nama_alat ?? "-"}{" "}
+              {labelJumlahUnit(p.alat?.nama_alat ?? "-", jumlahUnitMap[p.id])}{" "}
               {p.alat?.tipe_alat && `(${p.alat.tipe_alat})`}
             </p>
             <p className="text-sm text-slate-500">
@@ -95,7 +102,7 @@ export default function AccPemeriksaanList({ data }: { data: Pemeriksaan[] }) {
 
           <div className="mt-3 flex gap-2">
             <Button onClick={() => handleAcc(p.id)} disabled={loadingId === p.id}>
-              ACC
+              Setujui
             </Button>
             <Button
               variant="secondary"

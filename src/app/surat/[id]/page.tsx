@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/Navbar";
 import KopSurat from "@/components/KopSurat";
@@ -57,12 +57,32 @@ type ChecklistItem = {
 };
 
 export default async function SuratPeminjamanPage(
-  props: PageProps<"/pengembalian/surat/[id]">
+  props: PageProps<"/surat/[id]">
 ) {
   const { id } = await props.params;
 
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin, is_pimpinan, is_pimpinan2, is_teknisi, is_developer")
+    .eq("id", user.id)
+    .single();
+  const isStaff = !!(
+    profile?.is_admin ||
+    profile?.is_pimpinan ||
+    profile?.is_pimpinan2 ||
+    profile?.is_teknisi ||
+    profile?.is_developer
+  );
+
+  // RLS peminjaman: pemilik lihat miliknya sendiri, staff lihat semua --
+  // jadi kalau baris ini null berarti bukan pemilik dan bukan staff.
   const { data: peminjaman } = (await supabase
     .from("peminjaman")
     .select(
@@ -103,6 +123,17 @@ export default async function SuratPeminjamanPage(
     .select("jumlah_dibawa, kelengkapan_alat(nomor, nama_bagian, no_inventaris)")
     .eq("peminjaman_id", id)) as { data: ChecklistItem[] | null };
 
+  type UnitTambahan = {
+    alat: { id_alat: string; no_inventaris: string | null } | null;
+  };
+
+  const { data: unitTambahanRaw } = (await supabase
+    .from("peminjaman_unit_tambahan")
+    .select("alat(id_alat, no_inventaris)")
+    .eq("peminjaman_id", id)) as { data: UnitTambahan[] | null };
+
+  const unitTambahan = unitTambahanRaw ?? [];
+
   return (
     <div className="min-h-screen bg-slate-50 print:bg-white">
       <div className="no-print">
@@ -122,12 +153,13 @@ export default async function SuratPeminjamanPage(
           <div className="border border-slate-900 bg-white text-xs">
             <KopSurat />
             <div className="border-b border-slate-900 p-1.5 text-center font-bold">
-              DATA SURAT PEMINJAMAN PERALATAN
+              SURAT PEMINJAMAN PERALATAN
             </div>
             <div className="border-b border-slate-900 p-1.5 text-center">
               <NomorSuratEditor
                 id={peminjaman.id}
                 nomorSurat={peminjaman.nomor_surat}
+                canEdit={isStaff}
               />
             </div>
 
@@ -184,12 +216,38 @@ export default async function SuratPeminjamanPage(
                   <td className="border-r border-slate-900 px-2 py-0.5">A</td>
                   <td className="border-r border-slate-900 px-2 py-0.5">
                     Equipments: {peminjaman.alat?.nama_alat ?? "-"}
+                    {unitTambahan.length > 0 &&
+                      ` — ${unitTambahan.length + 1} unit`}
                   </td>
                   <td className="border-r border-slate-900 px-2 py-0.5">
-                    {peminjaman.alat?.no_inventaris ?? "-"}
+                    {unitTambahan.length === 0
+                      ? (peminjaman.alat?.no_inventaris ?? "-")
+                      : ""}
                   </td>
                   <td className="px-2 py-0.5"></td>
                 </tr>
+                {unitTambahan.length > 0 && (
+                  <>
+                    {[
+                      { id_alat: peminjaman.alat?.id_alat, no_inventaris: peminjaman.alat?.no_inventaris },
+                      ...unitTambahan.map((u) => u.alat),
+                    ].map((u, i) => (
+                      <tr key={u?.id_alat ?? i} className="border-b border-slate-900">
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {i + 1}
+                        </td>
+                        <td className="border-r border-slate-900 px-2 py-0.5"></td>
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {u?.id_alat ?? "-"}
+                        </td>
+                        <td className="border-r border-slate-900 px-2 py-0.5">
+                          {u?.no_inventaris ?? "-"}
+                        </td>
+                        <td className="px-2 py-0.5">1</td>
+                      </tr>
+                    ))}
+                  </>
+                )}
                 {(checklist ?? []).map((c, i) => (
                   <tr key={i} className="border-b border-slate-900">
                     <td className="border-r border-slate-900 px-2 py-0.5">
@@ -232,7 +290,7 @@ export default async function SuratPeminjamanPage(
                       )}
                       {peminjaman.diserahkan_pada && (
                         <p className="text-slate-500">
-                          Serah terima elektronik &middot;{" "}
+                          Diperiksa elektronik &middot;{" "}
                           {formatWaktu(peminjaman.diserahkan_pada)}
                         </p>
                       )}

@@ -25,7 +25,8 @@ export default async function EditAlatPage(
     .from("kelengkapan_alat")
     .select("id, nomor, nama_bagian, no_inventaris, kategori, jumlah_standar")
     .eq("id_alat", idAlat)
-    .order("urutan");
+    .order("urutan")
+    .order("created_at");
 
   return (
     <div className="min-h-screen">
