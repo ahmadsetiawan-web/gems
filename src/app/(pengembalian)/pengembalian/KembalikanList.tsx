@@ -65,13 +65,20 @@ export default function KembalikanList({
             />
           </div>
 
-          <div className="mt-3">
+          <div className="mt-3 flex flex-col items-start gap-1">
             <Link
               href={`/surat/${p.id}`}
               target="_blank"
               className="text-sm text-blue-600 hover:underline"
             >
               Cetak Surat
+            </Link>
+            <Link
+              href={`/surat-pengantar/${p.id}`}
+              target="_blank"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Cetak Surat Pengantar Barang
             </Link>
           </div>
         </div>

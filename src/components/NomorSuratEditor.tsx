@@ -8,10 +8,12 @@ import Button from "@/components/ui/Button";
 export default function NomorSuratEditor({
   id,
   nomorSurat,
+  column,
   canEdit,
 }: {
   id: string;
   nomorSurat: string;
+  column: "nomor_surat" | "nomor_surat_persetujuan";
   canEdit: boolean;
 }) {
   const supabase = createClient();
@@ -25,7 +27,7 @@ export default function NomorSuratEditor({
     setSubmitting(true);
     await supabase
       .from("peminjaman")
-      .update({ nomor_surat: value.trim() })
+      .update({ [column]: value.trim() })
       .eq("id", id);
     setSubmitting(false);
     setEditing(false);

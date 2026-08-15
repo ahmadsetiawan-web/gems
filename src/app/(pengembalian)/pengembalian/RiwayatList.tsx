@@ -138,6 +138,13 @@ export default function RiwayatList({
                     Cetak Surat Peminjaman
                   </Link>
                   <Link
+                    href={`/surat-pengantar/${r.id}`}
+                    target="_blank"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Cetak Surat Pengantar Barang
+                  </Link>
+                  <Link
                     href={`/surat-pengembalian/${r.id}`}
                     target="_blank"
                     className="text-sm text-blue-600 hover:underline"

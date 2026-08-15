@@ -188,6 +188,13 @@ export default async function RiwayatPage() {
                         >
                           Cetak Surat Peminjaman
                         </Link>
+                        <Link
+                          href={`/surat-pengantar/${r.id}`}
+                          target="_blank"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Cetak Surat Pengantar Barang
+                        </Link>
                         {r.status === "dikembalikan" && (
                           <Link
                             href={`/surat-pengembalian/${r.id}`}

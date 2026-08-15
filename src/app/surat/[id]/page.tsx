@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/Navbar";
 import KopSurat from "@/components/KopSurat";
 import PrintButton from "./PrintButton";
-import NomorSuratEditor from "./NomorSuratEditor";
+import NomorSuratEditor from "@/components/NomorSuratEditor";
 
 type PeminjamanDetail = {
   id: string;
@@ -159,6 +159,7 @@ export default async function SuratPeminjamanPage(
               <NomorSuratEditor
                 id={peminjaman.id}
                 nomorSurat={peminjaman.nomor_surat}
+                column="nomor_surat"
                 canEdit={isStaff}
               />
             </div>

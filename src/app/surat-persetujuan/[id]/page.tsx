@@ -2,10 +2,12 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/Navbar";
 import KopSurat from "@/components/KopSurat";
+import NomorSuratEditor from "@/components/NomorSuratEditor";
 import PrintButton from "./PrintButton";
 
 type PersetujuanDetail = {
   id: string;
+  nomor_surat_persetujuan: string | null;
   tanggal_pinjam: string;
   tanggal_rencana_kembali: string;
   keperluan: string | null;
@@ -51,12 +53,25 @@ export default async function SuratPersetujuanPage(
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin, is_pimpinan, is_pimpinan2, is_teknisi, is_developer")
+    .eq("id", user.id)
+    .single();
+  const isStaff = !!(
+    profile?.is_admin ||
+    profile?.is_pimpinan ||
+    profile?.is_pimpinan2 ||
+    profile?.is_teknisi ||
+    profile?.is_developer
+  );
+
   // RLS peminjaman: pemilik lihat miliknya sendiri, staff lihat semua --
   // jadi kalau baris ini null berarti bukan pemilik dan bukan staff.
   const { data: peminjaman } = (await supabase
     .from("peminjaman")
     .select(
-      "id, tanggal_pinjam, tanggal_rencana_kembali, keperluan, status, diajukan_pada, disetujui_oleh, disetujui_oleh_nip, disetujui_pada, alat(id_alat, nama_alat, tipe_alat, kode_alat, no_inventaris), profiles!peminjam_id(nama, nip)"
+      "id, nomor_surat_persetujuan, tanggal_pinjam, tanggal_rencana_kembali, keperluan, status, diajukan_pada, disetujui_oleh, disetujui_oleh_nip, disetujui_pada, alat(id_alat, nama_alat, tipe_alat, kode_alat, no_inventaris), profiles!peminjam_id(nama, nip)"
     )
     .eq("id", id)
     .single()) as { data: PersetujuanDetail | null };
@@ -122,6 +137,16 @@ export default async function SuratPersetujuanPage(
             <div className="border-b border-slate-900 p-1.5 text-center font-bold">
               SURAT PERSETUJUAN PEMINJAMAN
             </div>
+            {peminjaman.nomor_surat_persetujuan && (
+              <div className="border-b border-slate-900 p-1.5 text-center">
+                <NomorSuratEditor
+                  id={peminjaman.id}
+                  nomorSurat={peminjaman.nomor_surat_persetujuan}
+                  column="nomor_surat_persetujuan"
+                  canEdit={isStaff}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 border-b border-slate-900 p-3">
               <div>
