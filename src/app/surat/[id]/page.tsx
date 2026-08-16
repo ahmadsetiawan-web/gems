@@ -273,13 +273,9 @@ export default async function SuratPeminjamanPage(
               <div className="grid grid-cols-2 gap-4 border-b border-t border-slate-900 p-2">
                 <div>
                   <p>Catatan tambahan :</p>
-                  {peminjaman.catatan_tambahan ? (
-                    <p className="mt-2 font-medium">
-                      {peminjaman.catatan_tambahan}
-                    </p>
-                  ) : (
-                    <div className="mt-2 h-6 border-b border-dotted border-slate-400" />
-                  )}
+                  <p className="mt-2 font-medium">
+                    {peminjaman.catatan_tambahan ?? "-"}
+                  </p>
                 </div>
                 <div>
                   <p>Teknisi Peralatan :</p>
