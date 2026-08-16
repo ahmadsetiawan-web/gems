@@ -5,30 +5,24 @@ import KopSurat from "@/components/KopSurat";
 import PrintButton from "./PrintButton";
 import NomorSuratEditor from "@/components/NomorSuratEditor";
 
-type PeminjamanDetail = {
+type PeminjamanOrganikDetail = {
   id: string;
   nomor_surat: string | null;
   tanggal_pinjam: string;
   tanggal_rencana_kembali: string;
-  tanggal_kembali_aktual: string | null;
   keperluan: string | null;
-  catatan_tambahan: string | null;
-  status: string;
-  catatan_pengembalian: string | null;
+  jumlah_diambil: number;
   diajukan_pada: string | null;
   disetujui_oleh: string | null;
   disetujui_oleh_nip: string | null;
   disetujui_pada: string | null;
-  dikonfirmasi_oleh: string | null;
-  dikonfirmasi_oleh_nip: string | null;
-  dikonfirmasi_pada: string | null;
   diserahkan_oleh: string | null;
   diserahkan_oleh_nip: string | null;
   diserahkan_pada: string | null;
   disetujui2_oleh: string | null;
   disetujui2_oleh_nip: string | null;
   disetujui2_pada: string | null;
-  alat: { id_alat: string; nama_alat: string; no_inventaris: string | null } | null;
+  alat_organik: { nama_alat: string } | null;
   profiles: { nama: string | null; nip: string | null } | null;
 };
 
@@ -47,17 +41,8 @@ function formatWaktu(iso: string | null) {
   );
 }
 
-type ChecklistItem = {
-  jumlah_dibawa: number;
-  kelengkapan_alat: {
-    nomor: string | null;
-    nama_bagian: string;
-    no_inventaris: string | null;
-  } | null;
-};
-
-export default async function SuratPeminjamanPage(
-  props: PageProps<"/surat/[id]">
+export default async function SuratPeminjamanOrganikPage(
+  props: PageProps<"/surat-organik/[id]">
 ) {
   const { id } = await props.params;
 
@@ -81,15 +66,16 @@ export default async function SuratPeminjamanPage(
     profile?.is_developer
   );
 
-  // RLS peminjaman: pemilik lihat miliknya sendiri, staff lihat semua --
-  // jadi kalau baris ini null berarti bukan pemilik dan bukan staff.
+  // RLS peminjaman_organik: pemilik lihat miliknya sendiri, staff lihat
+  // semua -- jadi kalau baris ini null berarti bukan pemilik dan bukan
+  // staff.
   const { data: peminjaman } = (await supabase
-    .from("peminjaman")
+    .from("peminjaman_organik")
     .select(
-      "id, nomor_surat, tanggal_pinjam, tanggal_rencana_kembali, tanggal_kembali_aktual, keperluan, catatan_tambahan, status, catatan_pengembalian, diajukan_pada, disetujui_oleh, disetujui_oleh_nip, disetujui_pada, dikonfirmasi_oleh, dikonfirmasi_oleh_nip, dikonfirmasi_pada, diserahkan_oleh, diserahkan_oleh_nip, diserahkan_pada, disetujui2_oleh, disetujui2_oleh_nip, disetujui2_pada, alat(id_alat, nama_alat, no_inventaris), profiles!peminjam_id(nama, nip)"
+      "id, nomor_surat, tanggal_pinjam, tanggal_rencana_kembali, keperluan, jumlah_diambil, diajukan_pada, disetujui_oleh, disetujui_oleh_nip, disetujui_pada, diserahkan_oleh, diserahkan_oleh_nip, diserahkan_pada, disetujui2_oleh, disetujui2_oleh_nip, disetujui2_pada, alat_organik(nama_alat), profiles!peminjam_id(nama, nip)"
     )
     .eq("id", id)
-    .single()) as { data: PeminjamanDetail | null };
+    .single()) as { data: PeminjamanOrganikDetail | null };
 
   if (!peminjaman) notFound();
 
@@ -118,22 +104,6 @@ export default async function SuratPeminjamanPage(
     : { data: null };
   const jabatanPimpinan2 = pegawaiPimpinan2?.jabatan_struktural || null;
 
-  const { data: checklist } = (await supabase
-    .from("peminjaman_kelengkapan")
-    .select("jumlah_dibawa, kelengkapan_alat(nomor, nama_bagian, no_inventaris)")
-    .eq("peminjaman_id", id)) as { data: ChecklistItem[] | null };
-
-  type UnitTambahan = {
-    alat: { id_alat: string; no_inventaris: string | null } | null;
-  };
-
-  const { data: unitTambahanRaw } = (await supabase
-    .from("peminjaman_unit_tambahan")
-    .select("alat(id_alat, no_inventaris)")
-    .eq("peminjaman_id", id)) as { data: UnitTambahan[] | null };
-
-  const unitTambahan = unitTambahanRaw ?? [];
-
   return (
     <div className="min-h-screen bg-slate-50 print:bg-white">
       <div className="no-print">
@@ -159,7 +129,7 @@ export default async function SuratPeminjamanPage(
               <NomorSuratEditor
                 id={peminjaman.id}
                 nomorSurat={peminjaman.nomor_surat}
-                table="peminjaman"
+                table="peminjaman_organik"
                 column="nomor_surat"
                 canEdit={isStaff}
               />
@@ -201,107 +171,46 @@ export default async function SuratPeminjamanPage(
                     No.
                   </th>
                   <th className="border-r border-slate-900 px-2 py-0.5 text-left">
-                    Label
-                  </th>
-                  <th className="border-r border-slate-900 px-2 py-0.5 text-left">
                     Nama Barang
                   </th>
-                  <th className="border-r border-slate-900 px-2 py-0.5 text-left">
-                    No. Alat / Inventaris
-                  </th>
-                  <th className="px-2 py-0.5 text-left">Unit Pinjam</th>
+                  <th className="px-2 py-0.5 text-left">Jumlah</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-slate-900 font-medium">
-                  <td className="border-r border-slate-900 px-2 py-0.5"></td>
-                  <td className="border-r border-slate-900 px-2 py-0.5">A</td>
+                <tr className="border-b border-slate-900">
+                  <td className="border-r border-slate-900 px-2 py-0.5">1</td>
                   <td className="border-r border-slate-900 px-2 py-0.5">
-                    Equipments: {peminjaman.alat?.nama_alat ?? "-"}
-                    {unitTambahan.length > 0 &&
-                      ` — ${unitTambahan.length + 1} unit`}
+                    {peminjaman.alat_organik?.nama_alat ?? "-"}
                   </td>
-                  <td className="border-r border-slate-900 px-2 py-0.5">
-                    {unitTambahan.length === 0
-                      ? (peminjaman.alat?.no_inventaris ?? "-")
-                      : ""}
-                  </td>
-                  <td className="px-2 py-0.5"></td>
+                  <td className="px-2 py-0.5">{peminjaman.jumlah_diambil}</td>
                 </tr>
-                {unitTambahan.length > 0 && (
-                  <>
-                    {[
-                      { id_alat: peminjaman.alat?.id_alat, no_inventaris: peminjaman.alat?.no_inventaris },
-                      ...unitTambahan.map((u) => u.alat),
-                    ].map((u, i) => (
-                      <tr key={u?.id_alat ?? i} className="border-b border-slate-900">
-                        <td className="border-r border-slate-900 px-2 py-0.5">
-                          {i + 1}
-                        </td>
-                        <td className="border-r border-slate-900 px-2 py-0.5"></td>
-                        <td className="border-r border-slate-900 px-2 py-0.5">
-                          {u?.id_alat ?? "-"}
-                        </td>
-                        <td className="border-r border-slate-900 px-2 py-0.5">
-                          {u?.no_inventaris ?? "-"}
-                        </td>
-                        <td className="px-2 py-0.5">1</td>
-                      </tr>
-                    ))}
-                  </>
-                )}
-                {(checklist ?? []).map((c, i) => (
-                  <tr key={i} className="border-b border-slate-900">
-                    <td className="border-r border-slate-900 px-2 py-0.5">
-                      {i + 1}
-                    </td>
-                    <td className="border-r border-slate-900 px-2 py-0.5">
-                      {c.kelengkapan_alat?.nomor ?? "-"}
-                    </td>
-                    <td className="border-r border-slate-900 px-2 py-0.5">
-                      {c.kelengkapan_alat?.nama_bagian ?? "-"}
-                    </td>
-                    <td className="border-r border-slate-900 px-2 py-0.5">
-                      {c.kelengkapan_alat?.no_inventaris ?? "-"}
-                    </td>
-                    <td className="px-2 py-0.5">{c.jumlah_dibawa}</td>
-                  </tr>
-                ))}
               </tbody>
             </table>
 
             <div className="break-inside-avoid-page">
-              <div className="grid grid-cols-2 gap-4 border-b border-t border-slate-900 p-2">
-                <div>
-                  <p>Catatan tambahan :</p>
-                  <p className="mt-2 font-medium">
-                    {peminjaman.catatan_tambahan ?? "-"}
-                  </p>
-                </div>
-                <div>
-                  <p>Teknisi Peralatan :</p>
-                  {peminjaman.diserahkan_oleh ? (
-                    <div className="mt-2 rounded border border-slate-400 p-1.5">
-                      <p className="font-medium">{peminjaman.diserahkan_oleh}</p>
-                      {peminjaman.diserahkan_oleh_nip && (
-                        <p>NIP. {peminjaman.diserahkan_oleh_nip}</p>
-                      )}
-                      {peminjaman.diserahkan_pada && (
-                        <p className="text-slate-500">
-                          Diperiksa elektronik &middot;{" "}
-                          {formatWaktu(peminjaman.diserahkan_pada)}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <>
-                      <div className="h-8" />
-                      <p>
-                        ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
+              <div className="border-b border-t border-slate-900 p-2">
+                <p>Teknisi Peralatan :</p>
+                {peminjaman.diserahkan_oleh ? (
+                  <div className="mt-2 inline-block rounded border border-slate-400 p-1.5">
+                    <p className="font-medium">{peminjaman.diserahkan_oleh}</p>
+                    {peminjaman.diserahkan_oleh_nip && (
+                      <p>NIP. {peminjaman.diserahkan_oleh_nip}</p>
+                    )}
+                    {peminjaman.diserahkan_pada && (
+                      <p className="text-slate-500">
+                        Diperiksa elektronik &middot;{" "}
+                        {formatWaktu(peminjaman.diserahkan_pada)}
                       </p>
-                    </>
-                  )}
-                </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="h-8" />
+                    <p>
+                      ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
+                    </p>
+                  </>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-3">

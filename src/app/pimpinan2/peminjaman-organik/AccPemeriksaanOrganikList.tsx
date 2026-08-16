@@ -28,11 +28,21 @@ export default function AccPemeriksaanOrganikList({
 
   async function handleAcc(id: string) {
     setLoadingId(id);
-    await supabase
+    const { error } = await supabase
       .from("peminjaman_organik")
-      .update({ status: "dipinjam" })
+      .update({ status: "dipinjam", catatan_pimpinan2: null })
       .eq("id", id);
     setLoadingId(null);
+
+    if (error) {
+      alert(
+        error.code === "23514"
+          ? "Stok alat ini sudah habis diambil pengajuan lain, tidak bisa di-ACC."
+          : error.message
+      );
+      return;
+    }
+
     router.refresh();
   }
 

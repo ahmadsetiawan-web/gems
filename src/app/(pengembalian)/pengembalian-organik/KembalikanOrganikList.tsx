@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export type PinjamanOrganik = {
   id: string;
   tanggal_pinjam: string;
@@ -44,6 +46,16 @@ export default function KembalikanOrganikList({
                 Disetujui oleh: {p.disetujui_oleh}
               </p>
             )}
+          </div>
+
+          <div className="mt-3">
+            <Link
+              href={`/surat-organik/${p.id}`}
+              target="_blank"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Cetak Surat
+            </Link>
           </div>
         </div>
       ))}

@@ -42,6 +42,23 @@ export default async function Navbar() {
               GEMS
             </span>
           </Link>
+          {isAdmin && (
+            <Link
+              href="/admin/pengguna"
+              className="text-sm text-slate-600 hover:text-slate-900"
+            >
+              Kelola Pengguna
+            </Link>
+          )}
+          {isAdmin && (
+            <NavDropdown
+              label="Kelola Alat"
+              items={[
+                { href: "/admin/alat", label: "Kelola Alat Survei" },
+                { href: "/admin/alat-organik", label: "Kelola Alat Organik" },
+              ]}
+            />
+          )}
           {user && (
             <NavDropdown
               label="Peralatan"
@@ -50,53 +67,6 @@ export default async function Navbar() {
                 { href: "/peralatan-organik", label: "Peralatan Organik" },
               ]}
             />
-          )}
-          {isAdmin && (
-            <>
-              <NavDropdown
-                label="Kelola Alat"
-                items={[
-                  { href: "/admin/alat", label: "Kelola Alat Survei" },
-                  { href: "/admin/alat-organik", label: "Kelola Alat Organik" },
-                ]}
-              />
-              <Link
-                href="/admin/pengguna"
-                className="text-sm text-slate-600 hover:text-slate-900"
-              >
-                Kelola Pengguna
-              </Link>
-              <Link
-                href="/admin/status-peminjaman"
-                className="text-sm text-slate-600 hover:text-slate-900"
-              >
-                Status Peminjaman
-              </Link>
-            </>
-          )}
-          {(isAdmin || isTeknisi) && (
-            <>
-              <NavDropdown
-                label="Pemeriksaan Alat"
-                items={[
-                  { href: "/pemeriksaan-alat", label: "Pemeriksaan Alat Survei" },
-                  {
-                    href: "/pemeriksaan-alat-organik",
-                    label: "Pemeriksaan Alat Organik",
-                  },
-                ]}
-              />
-              <NavDropdown
-                label="Pengembalian Alat"
-                items={[
-                  { href: "/pengembalian", label: "Pengembalian Alat Survei" },
-                  {
-                    href: "/pengembalian-organik",
-                    label: "Pengembalian Alat Organik",
-                  },
-                ]}
-              />
-            </>
           )}
           {isPimpinan && (
             <NavDropdown
@@ -122,12 +92,44 @@ export default async function Navbar() {
               ]}
             />
           )}
+          {(isAdmin || isTeknisi) && (
+            <>
+              <NavDropdown
+                label="Pemeriksaan Alat"
+                items={[
+                  { href: "/pemeriksaan-alat", label: "Pemeriksaan Alat Survei" },
+                  {
+                    href: "/pemeriksaan-alat-organik",
+                    label: "Pemeriksaan Alat Organik",
+                  },
+                ]}
+              />
+              <NavDropdown
+                label="Pengembalian Alat"
+                items={[
+                  { href: "/pengembalian", label: "Pengembalian Alat Survei" },
+                  {
+                    href: "/pengembalian-organik",
+                    label: "Pengembalian Alat Organik",
+                  },
+                ]}
+              />
+            </>
+          )}
           {user && (
             <Link
               href="/riwayat"
               className="text-sm text-slate-600 hover:text-slate-900"
             >
               Riwayat
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              href="/admin/status-peminjaman"
+              className="text-sm text-slate-600 hover:text-slate-900"
+            >
+              Status Peminjaman
             </Link>
           )}
         </div>

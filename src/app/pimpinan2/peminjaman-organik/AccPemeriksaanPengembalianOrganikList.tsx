@@ -30,7 +30,7 @@ export default function AccPemeriksaanPengembalianOrganikList({
     setLoadingId(id);
     await supabase
       .from("peminjaman_organik")
-      .update({ status: "pengembalian_disetujui" })
+      .update({ status: "pengembalian_disetujui", catatan_pimpinan2: null })
       .eq("id", id);
     setLoadingId(null);
     router.refresh();

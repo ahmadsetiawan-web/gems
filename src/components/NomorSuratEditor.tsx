@@ -9,11 +9,13 @@ import Alert from "@/components/ui/Alert";
 export default function NomorSuratEditor({
   id,
   nomorSurat,
+  table,
   column,
   canEdit,
 }: {
   id: string;
   nomorSurat: string;
+  table: "peminjaman" | "peminjaman_organik";
   column: "nomor_surat" | "nomor_surat_persetujuan";
   canEdit: boolean;
 }) {
@@ -29,7 +31,7 @@ export default function NomorSuratEditor({
     setSubmitting(true);
     setError("");
     const { error: updateError } = await supabase
-      .from("peminjaman")
+      .from(table)
       .update({ [column]: value.trim() })
       .eq("id", id);
     setSubmitting(false);

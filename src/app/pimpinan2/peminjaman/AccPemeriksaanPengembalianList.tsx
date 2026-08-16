@@ -32,7 +32,7 @@ export default function AccPemeriksaanPengembalianList({
     setLoadingId(id);
     await supabase
       .from("peminjaman")
-      .update({ status: "pengembalian_disetujui" })
+      .update({ status: "pengembalian_disetujui", catatan_pimpinan2: null })
       .eq("id", id);
     setLoadingId(null);
     router.refresh();

@@ -31,7 +31,10 @@ export default function AccPemeriksaanList({
 
   async function handleAcc(id: string) {
     setLoadingId(id);
-    await supabase.from("peminjaman").update({ status: "dipinjam" }).eq("id", id);
+    await supabase
+      .from("peminjaman")
+      .update({ status: "dipinjam", catatan_pimpinan2: null })
+      .eq("id", id);
     setLoadingId(null);
     router.refresh();
   }

@@ -169,7 +169,7 @@ export default function PemeriksaanPengembalianList({
   if (data.length === 0) {
     return (
       <p className="text-slate-400">
-        Tidak ada tugas pemeriksaan pengembalian untuk kamu saat ini.
+        Tidak ada tugas pemeriksaan pengembalian yang ditugaskan ke akunmu saat ini.
       </p>
     );
   }

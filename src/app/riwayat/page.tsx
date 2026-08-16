@@ -264,6 +264,33 @@ export default async function RiwayatPage() {
                         Lanjutkan Draft
                       </Link>
                     )}
+                    {!BELUM_DISETUJUI.includes(r.status) && (
+                      <div className="mt-2 flex flex-col items-start gap-1">
+                        <Link
+                          href={`/surat-persetujuan-organik/${r.id}`}
+                          target="_blank"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Cetak Surat Persetujuan
+                        </Link>
+                        <Link
+                          href={`/surat-organik/${r.id}`}
+                          target="_blank"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          Cetak Surat Peminjaman
+                        </Link>
+                        {r.status === "dikembalikan" && (
+                          <Link
+                            href={`/surat-pengembalian-organik/${r.id}`}
+                            target="_blank"
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            Cetak Surat Pengembalian
+                          </Link>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <StatusBadge status={r.status} />
                 </div>

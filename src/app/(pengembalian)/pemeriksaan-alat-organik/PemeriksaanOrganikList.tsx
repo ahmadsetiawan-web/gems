@@ -50,7 +50,7 @@ export default function PemeriksaanOrganikList({
   if (data.length === 0) {
     return (
       <p className="text-slate-400">
-        Tidak ada tugas pemeriksaan alat untuk kamu saat ini.
+        Tidak ada tugas pemeriksaan alat yang ditugaskan ke akunmu saat ini.
       </p>
     );
   }

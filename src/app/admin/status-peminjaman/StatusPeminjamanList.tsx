@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import StatusBadge from "@/components/StatusBadge";
 
 export type StatusRow = {
@@ -16,9 +18,13 @@ export type StatusRow = {
 };
 
 const BELUM_DISETUJUI = ["draft", "diajukan", "ditolak"];
+const BISA_HAPUS = ["dikembalikan", "ditolak"];
 
 export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
+  const supabase = createClient();
+  const router = useRouter();
   const [query, setQuery] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const filtered = data.filter((r) => {
     const q = query.toLowerCase();
@@ -27,6 +33,24 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
       r.peminjam.toLowerCase().includes(q)
     );
   });
+
+  async function handleDelete(r: StatusRow) {
+    if (
+      !confirm(
+        `Hapus riwayat peminjaman "${r.namaAlat}" ini? Tindakan ini tidak bisa dibatalkan.`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(r.id);
+    await supabase
+      .from(r.jenis === "Organik" ? "peminjaman_organik" : "peminjaman")
+      .delete()
+      .eq("id", r.id);
+    setDeletingId(null);
+    router.refresh();
+  }
 
   return (
     <div>
@@ -47,6 +71,7 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
               <th className="px-3 py-2">Pinjam / Rencana Kembali</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2">Dokumen</th>
+              <th className="px-3 py-2">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -76,32 +101,34 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
                     </div>
                   </td>
                   <td className="px-3 py-2">
-                    {r.jenis === "Survei" && sudahDisetujui ? (
+                    {sudahDisetujui ? (
                       <div className="flex flex-col items-start gap-1">
                         <Link
-                          href={`/surat-persetujuan/${r.id}`}
+                          href={`/surat-persetujuan${r.jenis === "Organik" ? "-organik" : ""}/${r.id}`}
                           target="_blank"
                           className="text-blue-600 hover:underline"
                         >
                           Surat Persetujuan
                         </Link>
                         <Link
-                          href={`/surat/${r.id}`}
+                          href={`/surat${r.jenis === "Organik" ? "-organik" : ""}/${r.id}`}
                           target="_blank"
                           className="text-blue-600 hover:underline"
                         >
                           Surat Peminjaman
                         </Link>
-                        <Link
-                          href={`/surat-pengantar/${r.id}`}
-                          target="_blank"
-                          className="text-blue-600 hover:underline"
-                        >
-                          Surat Pengantar Barang
-                        </Link>
+                        {r.jenis === "Survei" && (
+                          <Link
+                            href={`/surat-pengantar/${r.id}`}
+                            target="_blank"
+                            className="text-blue-600 hover:underline"
+                          >
+                            Surat Pengantar Barang
+                          </Link>
+                        )}
                         {r.status === "dikembalikan" && (
                           <Link
-                            href={`/surat-pengembalian/${r.id}`}
+                            href={`/surat-pengembalian${r.jenis === "Organik" ? "-organik" : ""}/${r.id}`}
                             target="_blank"
                             className="text-blue-600 hover:underline"
                           >
@@ -113,12 +140,26 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
                       <span className="text-slate-300">-</span>
                     )}
                   </td>
+                  <td className="px-3 py-2">
+                    {BISA_HAPUS.includes(r.status) ? (
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(r)}
+                        disabled={deletingId === r.id}
+                        className="text-red-600 hover:underline disabled:opacity-50"
+                      >
+                        Hapus
+                      </button>
+                    ) : (
+                      <span className="text-slate-300">-</span>
+                    )}
+                  </td>
                 </tr>
               );
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-slate-400">
+                <td colSpan={7} className="px-3 py-6 text-center text-slate-400">
                   Tidak ada peminjaman ditemukan.
                 </td>
               </tr>

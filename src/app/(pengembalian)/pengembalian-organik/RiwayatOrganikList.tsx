@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export type RiwayatOrganikRow = {
@@ -104,6 +105,31 @@ export default function RiwayatOrganikList({
               >
                 {statusLabel[r.status] ?? r.status}
               </span>
+              {r.status === "dikembalikan" && (
+                <>
+                  <Link
+                    href={`/surat-persetujuan-organik/${r.id}`}
+                    target="_blank"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Cetak Surat Persetujuan
+                  </Link>
+                  <Link
+                    href={`/surat-organik/${r.id}`}
+                    target="_blank"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Cetak Surat Peminjaman
+                  </Link>
+                  <Link
+                    href={`/surat-pengembalian-organik/${r.id}`}
+                    target="_blank"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Cetak Surat Pengembalian
+                  </Link>
+                </>
+              )}
               <button
                 type="button"
                 onClick={() => handleDelete(r.id, r.alat_organik?.nama_alat ?? "-")}
