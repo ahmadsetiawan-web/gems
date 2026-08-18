@@ -15,7 +15,11 @@ export default function LogoutButton() {
   }
 
   return (
-    <Button variant="secondary" onClick={handleLogout}>
+    <Button
+      variant="secondary"
+      onClick={handleLogout}
+      className="hover:border-[#F6EE29]! hover:bg-[#F6EE29]! hover:text-black!"
+    >
       Logout
     </Button>
   );

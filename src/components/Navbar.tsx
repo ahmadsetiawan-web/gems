@@ -45,7 +45,7 @@ export default async function Navbar() {
           {isAdmin && (
             <Link
               href="/admin/pengguna"
-              className="text-sm text-slate-600 hover:text-slate-900"
+              className="text-sm text-slate-600 hover:text-[#8a8300]"
             >
               Kelola Pengguna
             </Link>
@@ -119,7 +119,7 @@ export default async function Navbar() {
           {user && (
             <Link
               href="/riwayat"
-              className="text-sm text-slate-600 hover:text-slate-900"
+              className="text-sm text-slate-600 hover:text-[#8a8300]"
             >
               Riwayat
             </Link>
@@ -127,7 +127,7 @@ export default async function Navbar() {
           {isAdmin && (
             <Link
               href="/admin/status-peminjaman"
-              className="text-sm text-slate-600 hover:text-slate-900"
+              className="text-sm text-slate-600 hover:text-[#8a8300]"
             >
               Status Peminjaman
             </Link>
@@ -136,8 +136,16 @@ export default async function Navbar() {
         <div className="flex items-center gap-4">
           {user && (
             <Link
+              href="/info"
+              className="text-sm text-slate-600 hover:text-[#8a8300]"
+            >
+              Tentang GEMS
+            </Link>
+          )}
+          {user && (
+            <Link
               href="/profil"
-              className="text-sm text-slate-600 hover:text-slate-900"
+              className="text-sm text-slate-600 hover:text-[#8a8300]"
             >
               Profil Saya
             </Link>

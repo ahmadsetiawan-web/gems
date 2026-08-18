@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Izinkan akses dev server dari laptop lain di jaringan yang sama
   // (tanpa ini, Next.js blokir file JS-nya sendiri saat diakses lewat
   // IP jaringan, bikin tombol/form tidak berfungsi sama sekali).
-  allowedDevOrigins: ["172.16.159.16"],
+  allowedDevOrigins: ["172.16.159.8"],
   images: {
     remotePatterns: [
       {

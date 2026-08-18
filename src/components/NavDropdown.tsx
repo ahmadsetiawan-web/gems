@@ -30,7 +30,7 @@ export default function NavDropdown({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900"
+        className="flex items-center gap-1 text-sm text-slate-600 hover:text-[#8a8300]"
       >
         {label}
         <span className="text-xs">{open ? "▴" : "▾"}</span>
@@ -42,7 +42,7 @@ export default function NavDropdown({
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              className="block px-4 py-2 text-sm text-slate-700 hover:bg-[#F6EE29]/20 hover:text-[#8a8300]"
             >
               {item.label}
             </Link>
