@@ -14,10 +14,11 @@ export default function Home() {
       <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-900">
         GEMS
       </h1>
-      <p className="mt-2 max-w-md text-slate-500">
-        Geophysical Equipment Management System — sistem peminjaman
-        peralatan geofisika Kementerian ESDM.
-      </p>
+      <div className="mt-2 max-w-md text-slate-500">
+        <p>Geophysical Equipment Management System</p>
+        <p>Sistem Peminjaman Peralatan Geofisika</p>
+        <p>Pusat Survei Geologi, Badan Geologi, Kementerian ESDM</p>
+      </div>
       <div className="mt-8 flex gap-3">
         <Link
           href="/login"

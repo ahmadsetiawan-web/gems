@@ -199,10 +199,8 @@ export default async function InfoPage() {
             </span>{" "}
             <span className="text-slate-500">— Developer</span>
             <br />
-            <span className="text-slate-600">087790058896</span>
-            <br />
             <span className="text-slate-600">
-              ahmadsetiawan01@gmail.com atau ahmad.setiawan@esdm.go.id
+              email : ahmad.setiawan@esdm.go.id
             </span>
           </p>
         </div>
