@@ -132,12 +132,14 @@ export default function JenisAlatForm({ jenis }: { jenis: JenisAlat }) {
           currentUrl={jenis.manual_url}
           onChange={setManualFile}
           accept="application/pdf"
+          hint="Opsional. Panduan cara mengoperasikan alat ini, untuk dibaca peminjam di halaman Peralatan. Kalau file masih .docx, simpan/export dulu sebagai PDF sebelum diunggah."
         />
         <FileField
           label="Dokumen Alat (PDF)"
           currentUrl={jenis.dokumen_url}
           onChange={setDokumenFile}
           accept="application/pdf"
+          hint="Opsional. Dokumen pendukung lain di luar cara pakai, misalnya spesifikasi teknis (datasheet), sertifikat kalibrasi, atau brosur alat."
         />
       </div>
 

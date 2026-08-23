@@ -19,10 +19,10 @@ export default function AuthCard({
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
           <Image
-            src="/logo-esdm.png"
+            src="/logo-esdm-horizontal.png"
             alt="Kementerian ESDM"
-            width={88}
-            height={107}
+            width={160}
+            height={70}
             className="mb-3"
             priority
           />

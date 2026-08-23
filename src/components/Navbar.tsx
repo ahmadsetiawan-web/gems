@@ -132,6 +132,14 @@ export default async function Navbar() {
               Status Peminjaman
             </Link>
           )}
+          {isAdmin && (
+            <Link
+              href="/admin/laporan"
+              className="text-sm text-slate-600 hover:text-[#8a8300]"
+            >
+              Laporan
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-4">
           {user && (

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import StatusBadge from "@/components/StatusBadge";
+import { downloadCsv } from "@/lib/csv";
 
 export type StatusRow = {
   id: string;
@@ -52,15 +53,48 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
     router.refresh();
   }
 
+  function handleUnduh() {
+    downloadCsv(
+      "status-peminjaman.csv",
+      [
+        "Jenis",
+        "Alat",
+        "Peminjam",
+        "Tanggal Pinjam",
+        "Rencana Kembali",
+        "Status",
+        "Ditugaskan Ke",
+      ],
+      filtered.map((r) => [
+        r.jenis,
+        r.namaAlat,
+        r.peminjam,
+        r.tanggalPinjam,
+        r.tanggalRencanaKembali,
+        r.status,
+        r.ditugaskanKe ?? "-",
+      ])
+    );
+  }
+
   return (
     <div>
-      <input
-        type="text"
-        placeholder="Cari nama alat atau peminjam..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="mb-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-[#d1cb23] focus:outline-none focus:ring-2 focus:ring-[#F6EE29]/40"
-      />
+      <div className="mb-4 flex items-center gap-3">
+        <input
+          type="text"
+          placeholder="Cari nama alat atau peminjam..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-[#d1cb23] focus:outline-none focus:ring-2 focus:ring-[#F6EE29]/40"
+        />
+        <button
+          type="button"
+          onClick={handleUnduh}
+          className="shrink-0 whitespace-nowrap text-sm text-blue-600 hover:underline"
+        >
+          Unduh CSV
+        </button>
+      </div>
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
         <table className="w-full text-sm">
           <thead>

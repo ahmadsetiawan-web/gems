@@ -5,10 +5,10 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white px-4 text-center">
       <Image
-        src="/logo-esdm.png"
+        src="/logo-esdm-horizontal.png"
         alt="Kementerian ESDM"
-        width={130}
-        height={158}
+        width={200}
+        height={88}
         priority
       />
       <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-900">

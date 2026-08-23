@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GEMS — Geophysical Equipment Management System
 
-## Getting Started
+Aplikasi peminjaman dan pengembalian peralatan survei geofisika serta
+peralatan organik, dipakai di lingkungan Badan Geologi, Pusat Survei
+Geologi, Kementerian ESDM. Alur kerja: pengajuan peminjaman → persetujuan
+Pimpinan 1 → penugasan & pemeriksaan Teknisi → persetujuan Pimpinan 2 →
+konfirmasi pengembalian Admin, dengan surat elektronik diterbitkan
+otomatis di tiap tahap.
 
-First, run the development server:
+## Teknologi
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js** 16 (App Router) + React 19 + TypeScript, styling Tailwind CSS.
+- **Supabase** — database Postgres, autentikasi, dan penyimpanan file
+  (foto alat, buku manual, tanda tangan elektronik, dll).
+- Node.js **20.9 atau lebih baru** dibutuhkan untuk menjalankan/build.
+
+## Yang perlu disiapkan untuk deploy
+
+### 1. Akses kode sumber
+
+Kode ada di repo GitHub `ahmadsetiawan-web/gems` (branch `master`). Beri
+akun IT akses sebagai collaborator ke repo ini, atau pindahkan
+kepemilikan repo ke organisasi kantor.
+
+### 2. Environment variable
+
+Aplikasi butuh 2 variabel (lihat `.env.example`), didapat dari dashboard
+proyek Supabase (Project Settings → API):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ini kunci publik (anon key), bukan kunci rahasia — tapi tetap sebaiknya
+diberikan lewat kanal yang aman (bukan chat terbuka), dan IT yang
+mengisikannya di pengaturan hosting, bukan meng-commit ke repo.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Database Supabase
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Skema database ada di `supabase/migrations/` (file `.sql` bernomor urut,
+saat ini 64 file). Dua pilihan untuk IT:
 
-## Learn More
+- **Pindah kepemilikan proyek Supabase yang sudah ada** — paling
+  sederhana, semua data, tabel, RLS policy, dan file storage yang sudah
+  ada langsung ikut pindah tanpa perlu menjalankan ulang migrasi.
+- **Bikin proyek Supabase baru** — jalankan semua file di
+  `supabase/migrations/` secara berurutan (0001 sampai file terakhir)
+  lewat SQL Editor Supabase. Kalau pilih ini, **file yang sudah
+  diunggah ke Storage (foto alat, PDF buku manual, tanda tangan
+  elektronik) tidak ikut pindah otomatis** — perlu diunduh dari proyek
+  lama lalu diunggah ulang manual ke proyek baru.
 
-To learn more about Next.js, take a look at the following resources:
+### 4. Hosting & domain
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Belum ditentukan di proyek ini — perlu didiskusikan dengan IT: mau
+dihost di Vercel, atau di server internal kantor? Apakah sudah ada
+domain/subdomain resmi yang akan dipakai?
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 5. Yang TIDAK perlu dikirim
 
-## Deploy on Vercel
+Folder `doc_tambahan/` di root proyek berisi berkas kerja pribadi (foto,
+dokumen referensi, file Excel yang sedang terbuka) — bukan bagian dari
+aplikasi, jangan ikut disertakan ke IT.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Menjalankan secara lokal
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm install
+npm run dev
+```
+
+Buka [http://localhost:3000](http://localhost:3000). Butuh file
+`.env.local` berisi 2 variabel di atas (lihat `.env.example`).
+
+## Build produksi
+
+```bash
+npm run build
+npm run start
+```

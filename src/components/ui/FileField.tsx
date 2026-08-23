@@ -1,8 +1,13 @@
+"use client";
+
+import { useState } from "react";
+
 type FileFieldProps = {
   label: string;
   currentUrl?: string | null;
   onChange: (file: File | null) => void;
   accept: string;
+  hint?: string;
 };
 
 export default function FileField({
@@ -10,12 +15,32 @@ export default function FileField({
   currentUrl,
   onChange,
   accept,
+  hint,
 }: FileFieldProps) {
+  const [showHint, setShowHint] = useState(false);
+
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700">
-        {label}
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label className="block text-sm font-medium text-slate-700">
+          {label}
+        </label>
+        {hint && (
+          <button
+            type="button"
+            onClick={() => setShowHint((v) => !v)}
+            aria-label={showHint ? "Sembunyikan info" : "Tampilkan info"}
+            className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600 hover:bg-slate-300"
+          >
+            i
+          </button>
+        )}
+      </div>
+      {hint && showHint && (
+        <p className="mb-1.5 rounded-md bg-slate-50 px-2 py-1.5 text-xs text-slate-500">
+          {hint}
+        </p>
+      )}
       {currentUrl && (
         <a
           href={currentUrl}
