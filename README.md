@@ -53,9 +53,21 @@ saat ini 64 file). Dua pilihan untuk IT:
 
 ### 4. Hosting & domain
 
-Belum ditentukan di proyek ini — perlu didiskusikan dengan IT: mau
-dihost di Vercel, atau di server internal kantor? Apakah sudah ada
-domain/subdomain resmi yang akan dipakai?
+Sudah diputuskan: **server internal kantor (Linux)**, bukan Vercel.
+Yang perlu disiapkan di server:
+
+| Kebutuhan | Pilihan konkret |
+|---|---|
+| Runtime | Node.js 20 LTS (via `nvm` atau paket resmi NodeSource) |
+| Process manager | `pm2` (`pm2 start npm --name gems -- start`, lalu `pm2 startup` supaya otomatis jalan lagi saat server reboot) |
+| Reverse proxy | Nginx — terima request di port 80/443, teruskan ke `localhost:3000` |
+| HTTPS | Certbot (Let's Encrypt) kalau domain bisa diverifikasi keluar, atau sertifikat internal kantor kalau intranet-only |
+| Firewall | Buka port 80/443 masuk; izinkan port 443 **keluar** ke `*.supabase.co` (database tetap di Supabase Cloud, server ini hanya menjalankan aplikasinya) |
+| Git | `git` terinstall di server untuk `git pull` saat ada update kode |
+
+Domain/subdomain internal yang akan dipakai (mis. `gems.esdm.local`)
+masih perlu didaftarkan di DNS internal kantor oleh IT — belum
+ditentukan namanya di sini.
 
 ### 5. Yang TIDAK perlu dikirim
 
