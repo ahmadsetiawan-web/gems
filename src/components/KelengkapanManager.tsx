@@ -34,6 +34,7 @@ export default function KelengkapanManager({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNomor, setEditNomor] = useState("");
@@ -78,9 +79,23 @@ export default function KelengkapanManager({
   async function handleDelete(id: string) {
     if (!confirm("Hapus kelengkapan ini?")) return;
 
+    setDeleteError("");
     setDeletingId(id);
-    await supabase.from("kelengkapan_alat").delete().eq("id", id);
+    const { error: deleteErr } = await supabase
+      .from("kelengkapan_alat")
+      .delete()
+      .eq("id", id);
     setDeletingId(null);
+
+    if (deleteErr) {
+      setDeleteError(
+        deleteErr.code === "23503"
+          ? "Tidak bisa dihapus karena part ini sudah pernah dicatat di riwayat peminjaman/pengembalian. Kalau datanya salah, gunakan Edit saja, bukan Hapus."
+          : deleteErr.message
+      );
+      return;
+    }
+
     router.refresh();
   }
 
@@ -135,6 +150,12 @@ export default function KelengkapanManager({
         Daftar ini akan muncul sebagai checklist saat peminjam mengajukan
         peminjaman alat ini.
       </p>
+
+      {deleteError && (
+        <div className="mt-3">
+          <Alert variant="error">{deleteError}</Alert>
+        </div>
+      )}
 
       <div className="mt-4 space-y-2">
         {data.length === 0 && (
