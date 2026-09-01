@@ -37,6 +37,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# berkas konfigurasi asisten AI (khusus dev lokal, tidak untuk repo)
+CLAUDE.md
+AGENTS.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
