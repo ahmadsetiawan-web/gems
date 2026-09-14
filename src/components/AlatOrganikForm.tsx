@@ -50,7 +50,10 @@ async function uploadFoto(
   if (error) throw error;
 
   const { data } = supabase.storage.from("alat").getPublicUrl(path);
-  return data.publicUrl;
+  // Path-nya tetap sama tiap upload (upsert), jadi browser/CDN bisa
+  // nyangkut cache versi lama -- tambahkan penanda versi supaya file
+  // baru langsung kepakai, bukan file lama yang ke-cache.
+  return `${data.publicUrl}?v=${Date.now()}`;
 }
 
 export default function AlatOrganikForm({
@@ -115,22 +118,33 @@ export default function AlatOrganikForm({
             .eq("id", created.id);
         }
       } else {
-        const selisih = jumlah - initialData.jumlah_total;
+        // Selisih jumlah_tersedia dihitung di dalam fungsi database
+        // (update_alat_organik), bukan di sini -- supaya tidak dihitung
+        // dari data basi kalau ada peminjaman yang berubah tepat di
+        // antara form ini dibuka dan disimpan.
+        const { error: updateError } = await supabase.rpc(
+          "update_alat_organik",
+          {
+            p_id: initialData.id,
+            p_nama_alat: namaAlat.trim(),
+            p_merek: merek.trim() || null,
+            p_nup: nup.trim() || null,
+            p_tahun_pembelian: tahunPembelian
+              ? parseInt(tahunPembelian, 10)
+              : null,
+            p_kondisi_alat: kondisiAlat,
+            p_jumlah_total: jumlah,
+          }
+        );
 
-        const { error: updateError } = await supabase
-          .from("alat_organik")
-          .update({
-            nama_alat: namaAlat.trim(),
-            merek: merek.trim() || null,
-            nup: nup.trim() || null,
-            tahun_pembelian: tahunPembelian ? parseInt(tahunPembelian, 10) : null,
-            kondisi_alat: kondisiAlat,
-            jumlah_total: jumlah,
-            jumlah_tersedia: initialData.jumlah_tersedia + selisih,
-          })
-          .eq("id", initialData.id);
-
-        if (updateError) throw updateError;
+        if (updateError) {
+          if (updateError.code === "23514") {
+            throw new Error(
+              "Jumlah total tidak boleh dikurangi sampai di bawah jumlah yang sedang dipinjam saat ini."
+            );
+          }
+          throw updateError;
+        }
 
         if (fotoFile) {
           const fotoUrl = await uploadFoto(supabase, namaAlat.trim(), fotoFile);
