@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
 import ChecklistDisplay from "@/components/ChecklistDisplay";
 import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
@@ -36,6 +37,7 @@ export default function PersetujuanList({
   const supabase = createClient();
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const [catatan, setCatatan] = useState<Record<string, string>>(() =>
     Object.fromEntries(data.map((p) => [p.id, DEFAULT_CATATAN]))
   );
@@ -44,36 +46,52 @@ export default function PersetujuanList({
     return catatan[id] ?? DEFAULT_CATATAN;
   }
 
+  async function ubahStatus(
+    id: string,
+    payload: { status: string; catatan_pimpinan: string | null }
+  ) {
+    setError("");
+    setLoadingId(id);
+    const { data: updated, error: updateError } = await supabase
+      .from("peminjaman")
+      .update(payload)
+      .eq("id", id)
+      .eq("status", "diajukan")
+      .select("id");
+    setLoadingId(null);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    if (!updated || updated.length === 0) {
+      setError(
+        "Pengajuan ini sudah diproses duluan (mis. oleh sesi lain), halaman dimuat ulang."
+      );
+      router.refresh();
+      return;
+    }
+    router.refresh();
+  }
+
   async function handleApprove(id: string) {
     if (!confirm("Apakah Anda yakin ingin menyetujui pengajuan peminjaman ini?")) {
       return;
     }
-    setLoadingId(id);
-    await supabase
-      .from("peminjaman")
-      .update({
-        status: "disetujui",
-        catatan_pimpinan: getCatatan(id).trim() || null,
-      })
-      .eq("id", id);
-    setLoadingId(null);
-    router.refresh();
+    await ubahStatus(id, {
+      status: "disetujui",
+      catatan_pimpinan: getCatatan(id).trim() || null,
+    });
   }
 
   async function handleReject(id: string) {
     if (!confirm("Apakah Anda yakin ingin menolak pengajuan peminjaman ini?")) {
       return;
     }
-    setLoadingId(id);
-    await supabase
-      .from("peminjaman")
-      .update({
-        status: "ditolak",
-        catatan_pimpinan: getCatatan(id).trim() || null,
-      })
-      .eq("id", id);
-    setLoadingId(null);
-    router.refresh();
+    await ubahStatus(id, {
+      status: "ditolak",
+      catatan_pimpinan: getCatatan(id).trim() || null,
+    });
   }
 
   if (data.length === 0) {
@@ -84,6 +102,7 @@ export default function PersetujuanList({
 
   return (
     <div className="space-y-3">
+      {error && <Alert variant="error">{error}</Alert>}
       {data.map((p) => (
         <div
           key={p.id}

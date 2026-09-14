@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
+import Alert from "@/components/ui/Alert";
 import { labelJumlahUnit } from "@/lib/peminjamanKolektif";
 
 export type Pinjaman = {
@@ -29,6 +30,7 @@ export default function PenugasanPengembalianList({
   const supabase = createClient();
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const [pilihan, setPilihan] = useState<Record<string, string>>(() =>
     Object.fromEntries(data.map((p) => [p.id, teknisiList[0]?.id ?? ""]))
   );
@@ -36,12 +38,25 @@ export default function PenugasanPengembalianList({
   async function handleTugaskan(id: string) {
     const teknisiId = pilihan[id];
     if (!teknisiId) return;
+    setError("");
     setLoadingId(id);
-    await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("peminjaman")
       .update({ status: "pengembalian_ditugaskan", ditugaskan_ke: teknisiId })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", "dipinjam")
+      .select("id");
     setLoadingId(null);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    if (!updated || updated.length === 0) {
+      setError(
+        "Peminjaman ini sudah diproses duluan (mis. oleh sesi lain), halaman dimuat ulang."
+      );
+    }
     router.refresh();
   }
 
@@ -62,6 +77,7 @@ export default function PenugasanPengembalianList({
 
   return (
     <div className="space-y-3">
+      {error && <Alert variant="error">{error}</Alert>}
       {data.map((p) => (
         <div
           key={p.id}
