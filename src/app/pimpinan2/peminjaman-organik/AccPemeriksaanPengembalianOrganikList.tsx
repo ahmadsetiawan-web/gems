@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
 
 export type PemeriksaanPengembalianOrganik = {
   id: string;
@@ -24,16 +25,40 @@ export default function AccPemeriksaanPengembalianOrganikList({
   const supabase = createClient();
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const [catatan, setCatatan] = useState<Record<string, string>>({});
 
-  async function handleAcc(id: string) {
+  async function ubahStatus(
+    id: string,
+    payload: { status: string; catatan_pimpinan2: string | null }
+  ) {
+    setError("");
     setLoadingId(id);
-    await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("peminjaman_organik")
-      .update({ status: "pengembalian_disetujui", catatan_pimpinan2: null })
-      .eq("id", id);
+      .update(payload)
+      .eq("id", id)
+      .eq("status", "pengembalian_diperiksa")
+      .select("id");
     setLoadingId(null);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    if (!updated || updated.length === 0) {
+      setError(
+        "Hasil pemeriksaan ini sudah diproses duluan (mis. oleh sesi lain), halaman dimuat ulang."
+      );
+    }
     router.refresh();
+  }
+
+  async function handleAcc(id: string) {
+    await ubahStatus(id, {
+      status: "pengembalian_disetujui",
+      catatan_pimpinan2: null,
+    });
   }
 
   async function handleTolak(id: string) {
@@ -42,13 +67,10 @@ export default function AccPemeriksaanPengembalianOrganikList({
       alert("Isi dulu alasan/catatan minta cek ulang.");
       return;
     }
-    setLoadingId(id);
-    await supabase
-      .from("peminjaman_organik")
-      .update({ status: "pengembalian_ditugaskan", catatan_pimpinan2: note })
-      .eq("id", id);
-    setLoadingId(null);
-    router.refresh();
+    await ubahStatus(id, {
+      status: "pengembalian_ditugaskan",
+      catatan_pimpinan2: note,
+    });
   }
 
   if (data.length === 0) {
@@ -61,6 +83,7 @@ export default function AccPemeriksaanPengembalianOrganikList({
 
   return (
     <div className="space-y-3">
+      {error && <Alert variant="error">{error}</Alert>}
       {data.map((p) => (
         <div
           key={p.id}

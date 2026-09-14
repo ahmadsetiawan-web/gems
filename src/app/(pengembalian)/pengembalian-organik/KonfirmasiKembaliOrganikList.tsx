@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
 
 export type SiapDikembalikanOrganik = {
   id: string;
@@ -25,6 +26,7 @@ export default function KonfirmasiKembaliOrganikList({
   const supabase = createClient();
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   async function handleKembalikan(id: string) {
     if (
@@ -34,15 +36,28 @@ export default function KonfirmasiKembaliOrganikList({
     ) {
       return;
     }
+    setError("");
     setLoadingId(id);
-    await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("peminjaman_organik")
       .update({
         status: "dikembalikan",
         tanggal_kembali_aktual: new Date().toISOString().split("T")[0],
       })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", "pengembalian_disetujui")
+      .select("id");
     setLoadingId(null);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    if (!updated || updated.length === 0) {
+      setError(
+        "Peminjaman ini sudah diproses duluan (mis. oleh sesi lain), halaman dimuat ulang."
+      );
+    }
     router.refresh();
   }
 
@@ -56,6 +71,7 @@ export default function KonfirmasiKembaliOrganikList({
 
   return (
     <div className="space-y-3">
+      {error && <Alert variant="error">{error}</Alert>}
       {data.map((p) => (
         <div
           key={p.id}

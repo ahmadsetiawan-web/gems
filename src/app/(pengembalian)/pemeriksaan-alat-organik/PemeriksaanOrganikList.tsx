@@ -36,14 +36,26 @@ export default function PemeriksaanOrganikList({
 
   async function handleSelesai(id: string) {
     setLoadingId(id);
-    await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("peminjaman_organik")
       .update({
         status: "diperiksa",
         catatan_pemeriksaan_teknisi: getCatatan(id).trim() || null,
       })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", "ditugaskan")
+      .select("id");
     setLoadingId(null);
+
+    if (updateError) {
+      alert(updateError.message);
+      return;
+    }
+    if (!updated || updated.length === 0) {
+      alert(
+        "Tugas ini sudah diproses duluan (mis. oleh sesi lain), halaman dimuat ulang."
+      );
+    }
     router.refresh();
   }
 

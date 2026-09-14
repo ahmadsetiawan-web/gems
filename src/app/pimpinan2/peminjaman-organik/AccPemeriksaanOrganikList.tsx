@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
 
 export type PemeriksaanOrganik = {
   id: string;
@@ -24,25 +25,33 @@ export default function AccPemeriksaanOrganikList({
   const supabase = createClient();
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const [catatan, setCatatan] = useState<Record<string, string>>({});
 
   async function handleAcc(id: string) {
+    setError("");
     setLoadingId(id);
-    const { error } = await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("peminjaman_organik")
       .update({ status: "dipinjam", catatan_pimpinan2: null })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", "diperiksa")
+      .select("id");
     setLoadingId(null);
 
-    if (error) {
-      alert(
-        error.code === "23514"
+    if (updateError) {
+      setError(
+        updateError.code === "23514"
           ? "Stok alat ini sudah habis diambil pengajuan lain, tidak bisa di-ACC."
-          : error.message
+          : updateError.message
       );
       return;
     }
-
+    if (!updated || updated.length === 0) {
+      setError(
+        "Hasil pemeriksaan ini sudah diproses duluan (mis. oleh sesi lain), halaman dimuat ulang."
+      );
+    }
     router.refresh();
   }
 
@@ -52,12 +61,25 @@ export default function AccPemeriksaanOrganikList({
       alert("Isi dulu alasan/catatan minta cek ulang.");
       return;
     }
+    setError("");
     setLoadingId(id);
-    await supabase
+    const { data: updated, error: updateError } = await supabase
       .from("peminjaman_organik")
       .update({ status: "ditugaskan", catatan_pimpinan2: note })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", "diperiksa")
+      .select("id");
     setLoadingId(null);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    if (!updated || updated.length === 0) {
+      setError(
+        "Hasil pemeriksaan ini sudah diproses duluan (mis. oleh sesi lain), halaman dimuat ulang."
+      );
+    }
     router.refresh();
   }
 
@@ -71,6 +93,7 @@ export default function AccPemeriksaanOrganikList({
 
   return (
     <div className="space-y-3">
+      {error && <Alert variant="error">{error}</Alert>}
       {data.map((p) => (
         <div
           key={p.id}
