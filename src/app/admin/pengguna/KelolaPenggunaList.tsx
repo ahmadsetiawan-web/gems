@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Alert from "@/components/ui/Alert";
 
 type Profile = {
   id: string;
@@ -39,6 +40,7 @@ export default function KelolaPenggunaList({ data }: { data: PenggunaRow[] }) {
   const [hanyaPunyaRole, setHanyaPunyaRole] = useState(true);
   const [rows, setRows] = useState(data);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   const filtered = rows.filter((r) => {
     const q = query.toLowerCase();
@@ -56,26 +58,35 @@ export default function KelolaPenggunaList({ data }: { data: PenggunaRow[] }) {
   });
 
   async function toggleRole(profileId: string, key: RoleKey, current: boolean) {
+    setError("");
     setSavingId(profileId);
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .from("profiles")
       .update({ [key]: !current })
       .eq("id", profileId);
     setSavingId(null);
 
-    if (!error) {
-      setRows((prev) =>
-        prev.map((r) =>
-          r.profile?.id === profileId
-            ? { ...r, profile: { ...r.profile!, [key]: !current } }
-            : r
-        )
-      );
+    if (updateError) {
+      setError(updateError.message);
+      return;
     }
+
+    setRows((prev) =>
+      prev.map((r) =>
+        r.profile?.id === profileId
+          ? { ...r, profile: { ...r.profile!, [key]: !current } }
+          : r
+      )
+    );
   }
 
   return (
     <div>
+      {error && (
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
       <input
         type="text"
         placeholder="Cari nama atau NIP..."

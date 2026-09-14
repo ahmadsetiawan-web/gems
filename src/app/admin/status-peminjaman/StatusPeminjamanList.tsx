@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import StatusBadge from "@/components/StatusBadge";
+import Alert from "@/components/ui/Alert";
 import { downloadCsv } from "@/lib/csv";
 
 export type StatusRow = {
@@ -26,6 +27,7 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   const filtered = data.filter((r) => {
     const q = query.toLowerCase();
@@ -44,12 +46,18 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
       return;
     }
 
+    setError("");
     setDeletingId(r.id);
-    await supabase
+    const { error: deleteError } = await supabase
       .from(r.jenis === "Organik" ? "peminjaman_organik" : "peminjaman")
       .delete()
       .eq("id", r.id);
     setDeletingId(null);
+
+    if (deleteError) {
+      setError(deleteError.message);
+      return;
+    }
     router.refresh();
   }
 
@@ -79,6 +87,11 @@ export default function StatusPeminjamanList({ data }: { data: StatusRow[] }) {
 
   return (
     <div>
+      {error && (
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
       <div className="mb-4 flex items-center gap-3">
         <input
           type="text"
