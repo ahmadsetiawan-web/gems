@@ -138,18 +138,22 @@ export default async function DashboardPage() {
   }
 
   if (isPimpinan2) {
-    const [penugasanCount, accCount] = await Promise.all([
-      countBoth(supabase, () => ({
-        eq: [["status", "disetujui"]],
-      })),
-      countBoth(supabase, () => ({
-        eq: [],
-        in: ["status", ["diperiksa", "pengembalian_diperiksa"]],
-      })),
-    ]);
+    const [penugasanCount, penugasanKembaliCount, accCount] =
+      await Promise.all([
+        countBoth(supabase, () => ({
+          eq: [["status", "disetujui"]],
+        })),
+        countBoth(supabase, () => ({
+          eq: [["status", "dipinjam"]],
+        })),
+        countBoth(supabase, () => ({
+          eq: [],
+          in: ["status", ["diperiksa", "pengembalian_diperiksa"]],
+        })),
+      ]);
     cards.push({
       label: "Menunggu kamu tugaskan ke Teknisi",
-      count: penugasanCount,
+      count: penugasanCount + penugasanKembaliCount,
       href: "/pimpinan2/peminjaman",
     });
     cards.push({
