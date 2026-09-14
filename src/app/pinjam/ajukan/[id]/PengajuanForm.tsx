@@ -195,7 +195,12 @@ export default function PengajuanForm({
 
       if (finalizeError) {
         setSubmitting(false);
-        setError(finalizeError.message);
+        setError(
+          finalizeError.code === "23505"
+            ? "Alat ini baru saja diajukan/dipinjam pengajuan lain. Silakan pilih alat lain."
+            : finalizeError.message
+        );
+        router.refresh();
         return;
       }
     }

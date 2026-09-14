@@ -165,7 +165,12 @@ export default function BulkPengajuanForm({
 
       if (finalizeError) {
         setSubmitting(false);
-        setError(finalizeError.message);
+        setError(
+          finalizeError.code === "23505"
+            ? "Salah satu unit di daftar ini baru saja diajukan/dipinjam pengajuan lain. Silakan periksa ulang daftar unit."
+            : finalizeError.message
+        );
+        router.refresh();
         return;
       }
     }
