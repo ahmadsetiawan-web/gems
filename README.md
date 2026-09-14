@@ -2,10 +2,29 @@
 
 Aplikasi peminjaman dan pengembalian peralatan survei geofisika serta
 peralatan organik, dipakai di lingkungan Badan Geologi, Pusat Survei
-Geologi, Kementerian ESDM. Alur kerja: pengajuan peminjaman → persetujuan
-Pimpinan 1 → penugasan & pemeriksaan Teknisi → persetujuan Pimpinan 2 →
-konfirmasi pengembalian Admin, dengan surat elektronik diterbitkan
-otomatis di tiap tahap.
+Geologi, Kementerian ESDM.
+
+## Alur kerja
+
+Peminjaman dan pengembalian sama-sama lewat siklus Teknisi →
+Pimpinan 2 — bukan cuma sekali, tapi dua kali (satu saat meminjamkan,
+satu lagi saat menerima kembali):
+
+**Saat meminjamkan:**
+1. Pegawai mengajukan peminjaman
+2. Pimpinan 1 menyetujui atau menolak pengajuan
+3. Pimpinan 2 menugaskan Teknisi untuk menyiapkan & memeriksa alat
+4. Teknisi memeriksa alat, isi checklist kelengkapan
+5. Pimpinan 2 menyetujui hasil pemeriksaan (atau minta Teknisi cek ulang)
+6. Alat resmi berstatus "Dipinjam"
+
+**Saat pengembalian** (setelah alat dipakai & dikembalikan secara fisik):
+7. Pimpinan 2 menugaskan Teknisi untuk memeriksa kondisi alat yang kembali
+8. Teknisi memeriksa kondisi & kelengkapan yang kembali
+9. Pimpinan 2 menyetujui hasil pemeriksaan pengembalian (atau minta cek ulang)
+10. Admin mengonfirmasi pengembalian final
+
+Surat elektronik diterbitkan otomatis di tiap tahap persetujuan.
 
 ## Teknologi
 
@@ -39,7 +58,7 @@ mengisikannya di pengaturan hosting, bukan meng-commit ke repo.
 ### 3. Database Supabase
 
 Skema database ada di `supabase/migrations/` (file `.sql` bernomor urut,
-saat ini 64 file). Dua pilihan untuk IT:
+saat ini 70 file). Dua pilihan untuk IT:
 
 - **Pindah kepemilikan proyek Supabase yang sudah ada** — paling
   sederhana, semua data, tabel, RLS policy, dan file storage yang sudah
