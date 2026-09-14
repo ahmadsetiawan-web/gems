@@ -40,7 +40,10 @@ async function uploadFile(
   if (error) throw error;
 
   const { data } = supabase.storage.from("alat").getPublicUrl(path);
-  return data.publicUrl;
+  // Path-nya tetap sama tiap upload (upsert), jadi browser/CDN bisa
+  // nyangkut cache versi lama -- tambahkan penanda versi supaya file
+  // baru langsung kepakai, bukan file lama yang ke-cache.
+  return `${data.publicUrl}?v=${Date.now()}`;
 }
 
 export default function JenisAlatForm({ jenis }: { jenis: JenisAlat }) {

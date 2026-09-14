@@ -41,10 +41,14 @@ export default function FotoForm({
     }
 
     const { data } = supabase.storage.from("pegawai").getPublicUrl(path);
+    // Path-nya tetap sama tiap upload (upsert), jadi browser/CDN bisa
+    // nyangkut cache versi lama -- tambahkan penanda versi supaya foto
+    // baru langsung kepakai, bukan foto lama yang ke-cache.
+    const fotoUrlBaru = `${data.publicUrl}?v=${Date.now()}`;
 
     const { error: updateError } = await supabase
       .from("pegawai")
-      .update({ foto_url: data.publicUrl })
+      .update({ foto_url: fotoUrlBaru })
       .eq("nip", nip);
 
     setSubmitting(false);
